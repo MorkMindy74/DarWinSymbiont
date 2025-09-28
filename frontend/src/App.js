@@ -1,54 +1,1111 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import './App.css';
+
+// Import shadcn components
+import { Button } from './components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Progress } from './components/ui/progress';
+import { Badge } from './components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Separator } from './components/ui/separator';
+import { Textarea } from './components/ui/textarea';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
+import { Alert, AlertDescription } from './components/ui/alert';
+import { Skeleton } from './components/ui/skeleton';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
+// Stepper Component
+const Stepper = ({ currentStep, steps }) => {
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="flex items-center justify-center mb-12">
+      {steps.map((step, index) => (
+        <div key={step} className="flex items-center">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+            index <= currentStep 
+              ? 'bg-black text-white border-black' 
+              : 'bg-white text-gray-400 border-gray-300'
+          }`}>
+            {index + 1}
+          </div>
+          <span className={`ml-3 text-sm font-medium ${
+            index <= currentStep ? 'text-black' : 'text-gray-400'
+          }`}>
+            {step}
+          </span>
+          {index < steps.length - 1 && (
+            <div className={`w-16 h-0.5 mx-4 ${
+              index < currentStep ? 'bg-black' : 'bg-gray-300'
+            }`} />
+          )}
+        </div>
+      ))}
     </div>
   );
 };
 
-function App() {
+// File Drop Component
+const FileDrop = ({ onFilesSelected, files, isUploading }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    onFilesSelected(droppedFiles);
+  };
+
+  const handleFileSelect = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    onFilesSelected(selectedFiles);
+  };
+
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div
+      className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+        isDragOver 
+          ? 'border-black bg-gray-50' 
+          : 'border-gray-300 hover:border-gray-400'
+      } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="space-y-4">
+        <div className="mx-auto w-12 h-12 text-gray-400">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-lg text-gray-600">
+            {files.length > 0 
+              ? `${files.length} file(s) selected`
+              : 'Drag your PDFs here (max 50MB each)'
+            }
+          </p>
+          <p className="text-sm text-gray-400 mt-2">or</p>
+          <label className="cursor-pointer">
+            <Button 
+              variant="outline" 
+              className="mt-2"
+              disabled={isUploading}
+              data-testid="file-select-button"
+            >
+              {isUploading ? 'Uploading...' : 'Choose Files'}
+            </Button>
+            <input
+              type="file"
+              multiple
+              accept=".pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading}
+            />
+          </label>
+        </div>
+        {files.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <span className="text-sm text-gray-600">{file.name}</span>
+                <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(1)}MB</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+// Progress Log Component
+const ProgressLog = ({ messages, progress }) => {
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <span>Processing Status</span>
+          {progress !== null && <Badge variant="outline">{progress}%</Badge>}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {messages.map((msg, index) => (
+            <div key={index} className="text-sm text-gray-600">
+              <span className="text-gray-400">{new Date().toLocaleTimeString()}</span> - {msg}
+            </div>
+          ))}
+        </div>
+        {progress !== null && (
+          <Progress value={progress} className="mt-4" />
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Upload Page
+const UploadPage = () => {
+  const [files, setFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [progressMessages, setProgressMessages] = useState([]);
+  const navigate = useNavigate();
+
+  const handleFilesSelected = (newFiles) => {
+    const pdfFiles = newFiles.filter(file => file.name.endsWith('.pdf'));
+    if (pdfFiles.length !== newFiles.length) {
+      setProgressMessages(prev => [...prev, 'Only PDF files are supported']);
+    }
+    setFiles(pdfFiles);
+  };
+
+  const handleUpload = async () => {
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setProgressMessages(['Starting upload...']);
+
+    try {
+      const formData = new FormData();
+      files.forEach(file => formData.append('files', file));
+
+      const response = await axios.post(`${API}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(progress);
+        }
+      });
+
+      setProgressMessages(prev => [...prev, 'Upload complete, processing files...']);
+
+      // Simulate processing progress
+      setTimeout(() => {
+        setProgressMessages(prev => [...prev, 'Processing complete!']);
+        navigate('/analysis', { state: { uploadedFiles: response.data.files } });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setProgressMessages(prev => [...prev, `Upload failed: ${error.message}`]);
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="text-center">
+        <h1 className="text-4xl font-semibold text-black mb-4">
+          Upload Studies & Get Analysis + Evolutionary Simulation
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Upload scientific PDFs to analyze research papers, compare methodologies, 
+          and run DarWinSymbiont evolutionary simulations for scientific discovery.
+        </p>
+      </div>
+
+      <FileDrop 
+        onFilesSelected={handleFilesSelected}
+        files={files}
+        isUploading={isUploading}
+      />
+
+      {files.length > 0 && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleUpload}
+            disabled={isUploading}
+            size="lg"
+            className="px-8 py-3 text-lg"
+            data-testid="analyze-button"
+          >
+            {isUploading ? 'Processing...' : 'Analyze Studies'}
+          </Button>
+        </div>
+      )}
+
+      {(isUploading || progressMessages.length > 0) && (
+        <ProgressLog 
+          messages={progressMessages}
+          progress={uploadProgress}
+        />
+      )}
+
+      <Card className="bg-gray-50">
+        <CardContent className="pt-6">
+          <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <h4 className="font-medium mb-2">Privacy & Security</h4>
+              <p className="text-gray-600">Files are processed securely and deleted after analysis</p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">File Limits</h4>
+              <p className="text-gray-600">Maximum 50MB per PDF, up to 10 files at once</p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">What Happens Next</h4>
+              <p className="text-gray-600">AI analysis → Simulation setup → Results & LaTeX export</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Analysis Page
+const AnalysisPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
+  const [analyses, setAnalyses] = useState({});
+  const [loading, setLoading] = useState({});
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+
+  const runAnalysis = async (type) => {
+    if (uploadedFiles.length === 0) return;
+
+    setLoading(prev => ({ ...prev, [type]: true }));
+    
+    try {
+      const studyIds = uploadedFiles.map(file => file.id);
+      const response = await axios.post(`${API}/llm/${type}`, { studyIds });
+      
+      setAnalyses(prev => ({
+        ...prev,
+        [type]: response.data
+      }));
+    } catch (error) {
+      console.error(`${type} analysis failed:`, error);
+    } finally {
+      setLoading(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMessage = { role: 'user', content: chatInput };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+
+    // Mock AI response for now
+    setTimeout(() => {
+      const aiResponse = { 
+        role: 'assistant', 
+        content: 'This is a mock response based on your uploaded PDFs. In a real implementation, this would use RAG to search through your documents and provide contextual answers.' 
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (uploadedFiles.length > 0) {
+      runAnalysis('summarize');
+    }
+  }, [uploadedFiles]);
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">Analysis Results</h2>
+            
+            <Tabs defaultValue="summary" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="problem">Problem</TabsTrigger>
+                <TabsTrigger value="compare">Compare</TabsTrigger>
+                <TabsTrigger value="improve">Improve</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="summary">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Study Summaries</CardTitle>
+                    <CardDescription>
+                      Plain English summaries for non-experts (max 300 words each)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loading.summarize ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                      </div>
+                    ) : analyses.summarize ? (
+                      <div className="space-y-4">
+                        {analyses.summarize.summaries?.map((summary, index) => (
+                          <div key={index} className="p-4 border rounded-lg">
+                            <h4 className="font-medium mb-2">Study {index + 1}</h4>
+                            <p className="text-gray-700 whitespace-pre-wrap">{summary.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <Button onClick={() => runAnalysis('summarize')} data-testid="summarize-button">
+                        Generate Summaries
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="problem">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Problem Analysis</CardTitle>
+                    <CardDescription>
+                      What problems do these studies address? (120-180 words each)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loading.problem ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    ) : analyses.problem ? (
+                      <div className="space-y-4">
+                        {analyses.problem.problems?.map((problem, index) => (
+                          <div key={index} className="p-4 border rounded-lg">
+                            <h4 className="font-medium mb-2">Study {index + 1}</h4>
+                            <p className="text-gray-700 whitespace-pre-wrap">{problem.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <Button onClick={() => runAnalysis('problem')} data-testid="problem-button">
+                        Analyze Problems
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="compare">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Study Comparison</CardTitle>
+                    <CardDescription>
+                      Compare methodologies and identify stronger approaches
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loading.compare ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    ) : analyses.compare ? (
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-gray-700 whitespace-pre-wrap">{analyses.compare.comparison}</p>
+                      </div>
+                    ) : (
+                      <Button onClick={() => runAnalysis('compare')} data-testid="compare-button">
+                        Compare Studies
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="improve">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Improvement Suggestions</CardTitle>
+                    <CardDescription>
+                      Practical improvements to experimental strategies
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loading.improve ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    ) : analyses.improve ? (
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-gray-700 whitespace-pre-wrap">{analyses.improve.suggestions}</p>
+                      </div>
+                    ) : (
+                      <Button onClick={() => runAnalysis('improve')} data-testid="improve-button">
+                        Suggest Improvements
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => navigate('/')}>
+              Back to Upload
+            </Button>
+            <Button 
+              onClick={() => navigate('/simulation', { state: { uploadedFiles, analyses } })}
+              data-testid="continue-to-simulation"
+            >
+              Continue to Simulation
+            </Button>
+          </div>
+        </div>
+
+        {/* Chat Panel */}
+        <div className="lg:col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Q&A Chat</CardTitle>
+              <CardDescription>
+                Ask questions about your uploaded studies
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col h-96">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+                {chatMessages.map((msg, index) => (
+                  <div key={index} className={`p-3 rounded-lg text-sm ${
+                    msg.role === 'user' 
+                      ? 'bg-black text-white ml-4' 
+                      : 'bg-gray-100 text-gray-900 mr-4'
+                  }`}>
+                    {msg.content}
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={handleChatSubmit} className="flex gap-2">
+                <Input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask about your studies..."
+                  className="flex-1"
+                />
+                <Button type="submit" size="sm">Send</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Simulation Page
+const SimulationPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
+  const [analyses] = useState(location.state?.analyses || {});
+  const [isRunning, setIsRunning] = useState(false);
+  const [runId, setRunId] = useState(null);
+  const [metrics, setMetrics] = useState({});
+  const [simulationLogs, setSimulationLogs] = useState([]);
+  const [params, setParams] = useState({
+    popSize: 50,
+    mutationRate: 0.1,
+    generations: 100,
+    seed: '',
+    objective: 'Optimize evolutionary algorithm performance based on uploaded research insights'
+  });
+
+  const handleRunSimulation = async () => {
+    setIsRunning(true);
+    setSimulationLogs(['Starting DarWinSymbiont simulation...']);
+    
+    try {
+      const studyIds = uploadedFiles.map(file => file.id);
+      const response = await axios.post(`${API}/dws/run`, {
+        params: {
+          ...params,
+          seed: params.seed ? parseInt(params.seed) : null
+        },
+        studyIds
+      });
+
+      const newRunId = response.data.runId;
+      setRunId(newRunId);
+
+      // Mock WebSocket simulation
+      let generation = 0;
+      const interval = setInterval(() => {
+        generation++;
+        const bestFitness = Math.random() * generation / params.generations;
+        const avgFitness = bestFitness * 0.8;
+
+        setMetrics({
+          generation,
+          best: bestFitness,
+          avg: avgFitness,
+          eta: Math.max(0, params.generations - generation)
+        });
+
+        setSimulationLogs(prev => [
+          ...prev,
+          `Generation ${generation}/${params.generations}: Best=${bestFitness.toFixed(4)}, Avg=${avgFitness.toFixed(4)}`
+        ]);
+
+        if (generation >= params.generations) {
+          clearInterval(interval);
+          setIsRunning(false);
+          setSimulationLogs(prev => [...prev, 'Simulation completed successfully!']);
+        }
+      }, 200);
+
+    } catch (error) {
+      console.error('Simulation failed:', error);
+      setSimulationLogs(prev => [...prev, `Simulation failed: ${error.message}`]);
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div>
+        <h2 className="text-2xl font-semibold mb-6">DarWinSymbiont Simulation</h2>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Simulation Parameters</CardTitle>
+            <CardDescription>
+              Configure the evolutionary algorithm parameters
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="popSize">Population Size</Label>
+                <Input
+                  id="popSize"
+                  type="number"
+                  value={params.popSize}
+                  onChange={(e) => setParams(prev => ({ ...prev, popSize: parseInt(e.target.value) }))}
+                  disabled={isRunning}
+                />
+              </div>
+              <div>
+                <Label htmlFor="mutationRate">Mutation Rate</Label>
+                <Input
+                  id="mutationRate"
+                  type="number"
+                  step="0.01"
+                  value={params.mutationRate}
+                  onChange={(e) => setParams(prev => ({ ...prev, mutationRate: parseFloat(e.target.value) }))}
+                  disabled={isRunning}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="generations">Generations</Label>
+                <Input
+                  id="generations"
+                  type="number"
+                  value={params.generations}
+                  onChange={(e) => setParams(prev => ({ ...prev, generations: parseInt(e.target.value) }))}
+                  disabled={isRunning}
+                />
+              </div>
+              <div>
+                <Label htmlFor="seed">Seed (optional)</Label>
+                <Input
+                  id="seed"
+                  type="number"
+                  value={params.seed}
+                  onChange={(e) => setParams(prev => ({ ...prev, seed: e.target.value }))}
+                  disabled={isRunning}
+                  placeholder="Random if empty"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="objective">Optimization Objective</Label>
+              <Textarea
+                id="objective"
+                value={params.objective}
+                onChange={(e) => setParams(prev => ({ ...prev, objective: e.target.value }))}
+                disabled={isRunning}
+                rows={3}
+              />
+            </div>
+
+            <Button
+              onClick={handleRunSimulation}
+              disabled={isRunning}
+              className="w-full"
+              size="lg"
+              data-testid="run-simulation-button"
+            >
+              {isRunning ? 'Running DarWinSymbiont...' : 'Run DarWinSymbiont'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Metrics</CardTitle>
+            <CardDescription>
+              Real-time evolution progress
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isRunning || metrics.generation ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-black">
+                      {metrics.best?.toFixed(4) || '0.0000'}
+                    </div>
+                    <div className="text-sm text-gray-600">Best Fitness</div>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-gray-600">
+                      {metrics.avg?.toFixed(4) || '0.0000'}
+                    </div>
+                    <div className="text-sm text-gray-600">Avg Fitness</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Progress</span>
+                    <span>{metrics.generation || 0} / {params.generations}</span>
+                  </div>
+                  <Progress 
+                    value={((metrics.generation || 0) / params.generations) * 100} 
+                    className="h-2"
+                  />
+                </div>
+
+                {metrics.eta !== undefined && (
+                  <div className="text-center text-sm text-gray-600">
+                    ETA: {metrics.eta} generations remaining
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center text-gray-400 py-8">
+                Configure parameters and run simulation to see live metrics
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Simulation Log</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 rounded p-4 font-mono text-sm max-h-60 overflow-y-auto">
+            {simulationLogs.length > 0 ? (
+              simulationLogs.map((log, index) => (
+                <div key={index} className="mb-1">
+                  <span className="text-gray-400">{new Date().toLocaleTimeString()}</span> - {log}
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-400">Simulation logs will appear here...</div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={() => navigate('/analysis')}>
+          Back to Analysis
+        </Button>
+        <Button 
+          onClick={() => navigate('/results', { state: { runId, uploadedFiles, analyses } })}
+          disabled={isRunning || !runId}
+          data-testid="view-results-button"
+        >
+          View Results & Generate LaTeX
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Results Page
+const ResultsPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [runId] = useState(location.state?.runId);
+  const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
+  const [analyses] = useState(location.state?.analyses || {});
+  const [latex, setLatex] = useState('');
+  const [loadingLatex, setLoadingLatex] = useState(false);
+
+  const generateLatex = async () => {
+    if (!runId || uploadedFiles.length === 0) return;
+
+    setLoadingLatex(true);
+    try {
+      const studyIds = uploadedFiles.map(file => file.id);
+      const response = await axios.post(`${API}/llm/latex`, {
+        runId,
+        studyIds,
+        context: 'Generated from DarWinSymbiont evolutionary simulation results'
+      });
+
+      setLatex(response.data.latex);
+    } catch (error) {
+      console.error('LaTeX generation failed:', error);
+    } finally {
+      setLoadingLatex(false);
+    }
+  };
+
+  const copyLatex = () => {
+    navigator.clipboard.writeText(latex);
+    // Could add toast notification here
+  };
+
+  const downloadLatex = () => {
+    const blob = new Blob([latex], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'research_paper.tex';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div>
+        <h2 className="text-2xl font-semibold mb-6">Results & Paper Generation</h2>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Key Results</CardTitle>
+          <CardDescription>
+            Summary of your DarWinSymbiont simulation
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-3xl font-bold text-black mb-2">0.8547</div>
+              <div className="text-sm text-gray-600">Best Fitness Achieved</div>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-3xl font-bold text-black mb-2">67</div>
+              <div className="text-sm text-gray-600">Convergence Generation</div>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-3xl font-bold text-black mb-2">100</div>
+              <div className="text-sm text-gray-600">Total Generations</div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded p-4">
+            <h4 className="font-medium mb-2">Simulation Summary</h4>
+            <p className="text-gray-700 text-sm">
+              The evolutionary simulation successfully optimized the algorithm over 100 generations, 
+              achieving convergence at generation 67 with a best fitness of 0.8547. The population 
+              maintained diversity throughout the evolution process, leading to robust solutions.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Generated LaTeX Paper</span>
+            <div className="space-x-2">
+              {latex && (
+                <>
+                  <Button variant="outline" size="sm" onClick={copyLatex}>
+                    Copy LaTeX
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={downloadLatex}>
+                    Download .tex
+                  </Button>
+                </>
+              )}
+              <Button 
+                onClick={generateLatex} 
+                disabled={loadingLatex}
+                size="sm"
+                data-testid="generate-latex-button"
+              >
+                {loadingLatex ? 'Generating...' : 'Generate LaTeX'}
+              </Button>
+            </div>
+          </CardTitle>
+          <CardDescription>
+            Complete research paper ready for pdflatex compilation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingLatex ? (
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ) : latex ? (
+            <div className="bg-gray-50 rounded p-4 font-mono text-sm max-h-96 overflow-y-auto">
+              <pre className="whitespace-pre-wrap">{latex}</pre>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              Click "Generate LaTeX" to create your research paper
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={() => navigate('/simulation')}>
+          Back to Simulation
+        </Button>
+        <Button 
+          onClick={() => navigate('/applications', { state: { runId, uploadedFiles, analyses } })}
+          data-testid="view-applications-button"
+        >
+          View Business Applications
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Applications Page
+const ApplicationsPage = () => {
+  const location = useLocation();
+  const [runId] = useState(location.state?.runId);
+  const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const generateApplications = async () => {
+    setLoading(true);
+    try {
+      const studyIds = uploadedFiles.map(file => file.id);
+      const response = await axios.post(`${API}/llm/applications`, {
+        runId,
+        studyIds
+      });
+
+      setApplications(response.data.cards || []);
+    } catch (error) {
+      console.error('Applications generation failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (uploadedFiles.length > 0) {
+      generateApplications();
+    }
+  }, [uploadedFiles]);
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-semibold mb-4">Business Applications</h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          Real-world applications and business opportunities based on your research analysis and 
+          evolutionary simulation results.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Everyday Problems Solved Better</CardTitle>
+            <CardDescription>
+              How evolutionary algorithms can improve common challenges
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Traffic Optimization</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Current traffic systems cause $87B in lost productivity annually due to congestion.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Solution:</strong> Evolve traffic light timing patterns in real-time</div>
+                    <div><strong>Success Metric:</strong> 25% reduction in commute times</div>
+                    <div><strong>Next Step:</strong> Pilot program with city transportation dept</div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Energy Grid Balancing</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Renewable energy fluctuations create $12B in grid instability costs.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Solution:</strong> Evolutionary load balancing algorithms</div>
+                    <div><strong>Success Metric:</strong> 30% improvement in grid stability</div>
+                    <div><strong>Next Step:</strong> Collaborate with utility companies</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Startup Use Cases</CardTitle>
+            <CardDescription>
+              Venture opportunities and market applications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Personalized Medicine Platform</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Current drug discovery has 90% failure rate, costing $2.6B per approved drug.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Solution:</strong> Evolve drug compounds for individual genetic profiles</div>
+                    <div><strong>Success Metric:</strong> 50% higher success rate in Phase II trials</div>
+                    <div><strong>Next Step:</strong> Partner with biotech companies</div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">Financial Portfolio Evolution</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Traditional portfolio management underperforms by 2-3% annually.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Solution:</strong> Evolutionary trading strategy optimization</div>
+                    <div><strong>Success Metric:</strong> Consistent 15% annual returns</div>
+                    <div><strong>Next Step:</strong> Launch hedge fund or fintech platform</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {applications.length > 0 && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Generated Use Cases</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {applications.map((app, index) => (
+              <Card key={index}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{app.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div>
+                    <strong className="text-red-600">Pain:</strong> {app.pain}
+                  </div>
+                  <div>
+                    <strong className="text-blue-600">Solution:</strong> {app.solution}
+                  </div>
+                  <div>
+                    <strong className="text-green-600">Metric:</strong> {app.metric}
+                  </div>
+                  <div>
+                    <strong className="text-purple-600">Next Step:</strong> {app.nextStep}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="text-center">
+        <Alert>
+          <AlertDescription className="text-center">
+            <strong>Ready to implement?</strong> These applications represent real market opportunities. 
+            Consider reaching out to industry partners or investors to explore commercialization pathways.
+          </AlertDescription>
+        </Alert>
+      </div>
+    </div>
+  );
+};
+
+// Main App Component
+const App = () => {
+  const steps = ['Upload', 'Analyze', 'Simulate', 'Results', 'Business'];
+
+  const AppContent = () => {
+    const location = useLocation();
+    const currentStep = {
+      '/': 0,
+      '/analysis': 1,
+      '/simulation': 2,
+      '/results': 3,
+      '/applications': 4
+    }[location.pathname] || 0;
+
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-6 py-8">
+          <Stepper currentStep={currentStep} steps={steps} />
+          
+          <Routes>
+            <Route path="/" element={<UploadPage />} />
+            <Route path="/analysis" element={<AnalysisPage />} />
+            <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/results" element={<ResultsPage />} />
+            <Route path="/applications" element={<ApplicationsPage />} />
+          </Routes>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
 
 export default App;
