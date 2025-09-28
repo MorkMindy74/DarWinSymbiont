@@ -213,9 +213,52 @@ const UploadPage = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-semibold text-black mb-4">
+        {/* Main Branding Title */}
+        <div className="mb-6">
+          <h1 className="text-6xl font-bold text-black mb-2 tracking-wider font-mono relative">
+            <span className="bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent">
+              DARWINSYMBIONT
+            </span>
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-0.5 bg-black"></div>
+          </h1>
+          <p className="text-xl text-gray-700 font-medium tracking-wide">
+            COMPARE SCIENCE, EVOLVE RESEARCH
+          </p>
+        </div>
+        
+        {/* Scientific Introduction */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-8 max-w-4xl mx-auto">
+          <h3 className="text-lg font-semibold text-black mb-3">
+            🧬 Discover what makes DarWinSymbiont unique in evolutionary simulation
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-700">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>
+              <div>
+                <h4 className="font-medium mb-1">AI-Powered Analysis</h4>
+                <p>Upload PDFs → GPT-5 extracts insights, methodologies, and performance metrics</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">2</div>
+              <div>
+                <h4 className="font-medium mb-1">Evolutionary Simulation</h4>
+                <p>DarWinSymbiont runs population-based optimization with real-time progress</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">3</div>
+              <div>
+                <h4 className="font-medium mb-1">Scientific Comparison</h4>
+                <p>Side-by-side analysis vs original studies → LaTeX paper export</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-semibold text-black mb-4">
           Upload Studies & Get Analysis + Evolutionary Simulation
-        </h1>
+        </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Upload scientific PDFs to analyze research papers, compare methodologies, 
           and run DarWinSymbiont evolutionary simulations for scientific discovery.
