@@ -1,0 +1,45 @@
+{
+  "summary": {
+    "total_tests": 4,
+    "passed_tests": 2,
+    "success_rate": 50.0,
+    "timestamp": "2025-09-28T07:27:47.640796",
+    "focus": "NEW Comparative Results Features Testing"
+  },
+  "test_results": [
+    {
+      "test": "API Health Check",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Status: 200",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:27:47.525123"
+    },
+    {
+      "test": "Studies Endpoint",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Found 5 studies in database",
+      "response_data": {
+        "study_count": 5
+      },
+      "timestamp": "2025-09-28T07:27:47.564973"
+    },
+    {
+      "test": "Compare Performance Endpoint",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "Status: 500, Response: {\"detail\":\"Performance comparison failed: 404: Run not found\"}",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:27:47.602861"
+    },
+    {
+      "test": "LaTeX with Comparison",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "Status: 500, Response: {\"detail\":\"LaTeX generation failed: 404: Run not found\"}",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:27:47.640364"
+    }
+  ]
+}
