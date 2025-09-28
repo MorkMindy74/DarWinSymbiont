@@ -772,7 +772,8 @@ const ResultsPage = () => {
       const response = await axios.post(`${API}/llm/latex`, {
         runId,
         studyIds,
-        context: 'Generated from DarWinSymbiont evolutionary simulation results'
+        comparison: comparison || null,
+        context: 'Generated from DarWinSymbiont evolutionary simulation results with comparative analysis'
       });
 
       setLatex(response.data.latex);
