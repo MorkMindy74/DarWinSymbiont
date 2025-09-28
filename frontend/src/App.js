@@ -922,6 +922,28 @@ const ResultsPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const checkDataConsistency = async () => {
+    if (!runId) return;
+    
+    try {
+      const response = await axios.get(`${API}/consistency/check?runId=${runId}`);
+      setConsistencyCheck(response.data);
+      
+      if (!response.data.consistent && response.data.inconsistencies.length > 0) {
+        setShowInconsistencyBanner(true);
+      }
+    } catch (error) {
+      console.error('Consistency check failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (runId) {
+      checkDataConsistency();
+      addToHistory(location.pathname, { runId, uploadedFiles, analyses, comparison });
+    }
+  }, [runId]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
