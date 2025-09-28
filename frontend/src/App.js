@@ -1072,7 +1072,7 @@ const ApplicationsPage = () => {
 
 // Main App Component
 const App = () => {
-  const steps = ['Upload', 'Analyze', 'Simulate', 'Results', 'Business'];
+  const steps = ['Upload', 'Analyze', 'Simulate', 'Compare', 'Results', 'Business'];
 
   const AppContent = () => {
     const location = useLocation();
