@@ -984,15 +984,21 @@ const ResultsPage = () => {
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-black mb-2">0.8547</div>
+              <ProvenanceTooltip source="simulation" confidence={0.95}>
+                <div className="text-3xl font-bold text-black mb-2">0.8547</div>
+              </ProvenanceTooltip>
               <div className="text-sm text-gray-600">Best Fitness Achieved</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-black mb-2">67</div>
+              <ProvenanceTooltip source="simulation" confidence={1.0}>
+                <div className="text-3xl font-bold text-black mb-2">67</div>
+              </ProvenanceTooltip>
               <div className="text-sm text-gray-600">Convergence Generation</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-black mb-2">100</div>
+              <ProvenanceTooltip source="simulation" confidence={1.0}>
+                <div className="text-3xl font-bold text-black mb-2">100</div>
+              </ProvenanceTooltip>
               <div className="text-sm text-gray-600">Total Generations</div>
             </div>
           </div>
