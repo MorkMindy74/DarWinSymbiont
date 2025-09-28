@@ -888,11 +888,11 @@ const ResultsPage = () => {
       </Card>
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => navigate('/simulation')}>
-          Back to Simulation
+        <Button variant="outline" onClick={() => navigate('/compare')}>
+          Back to Comparison
         </Button>
         <Button 
-          onClick={() => navigate('/applications', { state: { runId, uploadedFiles, analyses } })}
+          onClick={() => navigate('/applications', { state: { runId, uploadedFiles, analyses, comparison } })}
           data-testid="view-applications-button"
         >
           View Business Applications
