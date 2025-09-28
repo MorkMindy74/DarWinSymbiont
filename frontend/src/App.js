@@ -954,6 +954,19 @@ const ComparativeResultsPage = () => {
   const [analyses] = useState(location.state?.analyses || {});
   const [comparison, setComparison] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('comparison'); // 'comparison', 'simulation', 'study'
+  const [selectedStudyForComparison, setSelectedStudyForComparison] = useState(0);
+  const [studyTags, setStudyTags] = useState({});
+
+  // Initialize study tags
+  useEffect(() => {
+    const tags = {};
+    uploadedFiles.forEach((file, index) => {
+      if (index === 0) tags[file.id] = 'Base Study';
+      else tags[file.id] = `Study ${index + 1}`;
+    });
+    setStudyTags(tags);
+  }, [uploadedFiles]);
 
   const generateComparison = async () => {
     if (!runId || uploadedFiles.length === 0) return;
