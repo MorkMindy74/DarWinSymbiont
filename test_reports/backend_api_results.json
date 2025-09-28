@@ -1,0 +1,98 @@
+{
+  "summary": {
+    "total_tests": 11,
+    "passed_tests": 1,
+    "success_rate": 9.090909090909092,
+    "timestamp": "2025-09-28T07:07:17.117540"
+  },
+  "test_results": [
+    {
+      "test": "API Health Check",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Status: 200",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:06:34.984120"
+    },
+    {
+      "test": "PDF Upload",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:05.028295"
+    },
+    {
+      "test": "Get Studies",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=10)",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117351"
+    },
+    {
+      "test": "LLM Summarize",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files to test with",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117377"
+    },
+    {
+      "test": "LLM Problem Analysis",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files to test with",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117383"
+    },
+    {
+      "test": "LLM Compare",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files to test with",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117387"
+    },
+    {
+      "test": "LLM Improve",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files to test with",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117391"
+    },
+    {
+      "test": "DWS Run",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files to test with",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117396"
+    },
+    {
+      "test": "DWS Summary",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No run ID available",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117400"
+    },
+    {
+      "test": "LaTeX Generation",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No run ID or uploaded files available",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117405"
+    },
+    {
+      "test": "Applications Generation",
+      "status": "\u274c FAIL",
+      "success": false,
+      "details": "No uploaded files available",
+      "response_data": null,
+      "timestamp": "2025-09-28T07:07:17.117408"
+    }
+  ]
+}
