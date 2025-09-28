@@ -7,6 +7,10 @@ import './App.css';
 const ThemeContext = createContext();
 const useTheme = () => useContext(ThemeContext);
 
+// Navigation Context for History Management
+const NavigationContext = createContext();
+const useNavigation = () => useContext(NavigationContext);
+
 // Import shadcn components
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
