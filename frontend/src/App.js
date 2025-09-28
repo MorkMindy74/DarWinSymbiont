@@ -1135,12 +1135,85 @@ const ComparativeResultsPage = () => {
         </Card>
       ) : comparison ? (
         <div className="space-y-6">
-          {/* Comparison Table */}
+          {/* Split-View Comparison */}
+          {viewMode === 'comparison' && (
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card className="border-blue-200 bg-blue-50/30">
+                <CardHeader>
+                  <CardTitle className="text-blue-800 flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-100">Original Study</Badge>
+                    <span>{studyTags[uploadedFiles[selectedStudyForComparison]?.id] || 'Study'}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-100/50 rounded">
+                      <h4 className="font-medium text-blue-900">Methodology</h4>
+                      <p className="text-sm text-blue-700">
+                        {comparison?.studyMetrics?.method || 'Traditional optimization approach'}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-blue-100/50 rounded">
+                      <h4 className="font-medium text-blue-900">Performance</h4>
+                      <p className="text-sm text-blue-700">
+                        Best: {comparison?.studyMetrics?.best || 'Not specified'}
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        Convergence: {comparison?.studyMetrics?.convergence || 'Variable'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-green-200 bg-green-50/30">
+                <CardHeader>
+                  <CardTitle className="text-green-800 flex items-center gap-2">
+                    <Badge variant="outline" className="bg-green-100">DarWinSymbiont</Badge>
+                    <span>Simulation Results</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-100/50 rounded">
+                      <h4 className="font-medium text-green-900">Methodology</h4>
+                      <p className="text-sm text-green-700">
+                        Population-based evolutionary algorithm with adaptive mutation
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-100/50 rounded">
+                      <h4 className="font-medium text-green-900">Performance</h4>
+                      <p className="text-sm text-green-700">Best: 0.8547</p>
+                      <p className="text-sm text-green-700">Convergence: Generation 67/100</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Standard Comparison Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance Comparison</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>Performance Comparison</span>
+                {comparison?.verdict && (
+                  <Badge 
+                    variant={
+                      comparison.verdict === 'outperformed' ? 'default' :
+                      comparison.verdict === 'underperformed' ? 'destructive' : 
+                      'secondary'
+                    }
+                    className="ml-2"
+                  >
+                    {comparison.verdict === 'outperformed' && '🏆 DWS Outperformed'}
+                    {comparison.verdict === 'underperformed' && '📉 DWS Underperformed'}
+                    {comparison.verdict === 'mixed' && '⚖️ Mixed Performance'}
+                  </Badge>
+                )}
+              </CardTitle>
               <CardDescription>
-                Side-by-side comparison of study results vs DarWinSymbiont simulation
+                Detailed side-by-side comparison with highlighted differences
               </CardDescription>
             </CardHeader>
             <CardContent>
