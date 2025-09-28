@@ -656,14 +656,28 @@ async def generate_latex(request: LaTeXRequest):
         
         context_text = "\n\n---\n\n".join(study_context)
         
-        prompt = f"""Generate full pdflatex-ready LaTeX code for a paper: title, placeholder authors, abstract, introduction, related work (from PDFs), method (DarWinSymbiont), experiments (from UI params), results (metrics run), discussion, limitations, conclusions, references (bibliography).
+        # Include comparative analysis if available
+        comparison_section = ""
+        if request.comparison:
+            comparison_section = f"""
+Comparative Analysis Results:
+- Verdict: {request.comparison.get('verdict', 'mixed')}
+- Summary: {request.comparison.get('summary', 'No comparison available')}
+- DWS Performance: {json.dumps(request.comparison.get('comparisonTable', []))}
+"""
+
+        prompt = f"""Generate full pdflatex-ready LaTeX code for a paper: title, placeholder authors, abstract, introduction, related work (from PDFs), method (DarWinSymbiont), experiments (from UI params), results (metrics run), comparative analysis (DWS vs original studies), discussion, limitations, conclusions, references (bibliography).
+
+IMPORTANT: Include a dedicated "Comparative Analysis" section before Discussion that compares DarWinSymbiont performance with the original study results.
+
 Insert placeholders for figures (provided paths). Avoid rare packages. Return only LaTeX code.
 
 Study Context: {context_text[:2000]}
 Run Parameters: {json.dumps(run_doc['params'])}
+{comparison_section}
 Additional Context: {request.context or ''}
 
-Please generate a complete research paper in LaTeX format."""
+Please generate a complete research paper in LaTeX format with the comparative analysis section."""
 
         message = UserMessage(text=prompt)
         response = await llm_chat.send_message(message)
