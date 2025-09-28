@@ -1787,8 +1787,8 @@ const App = () => {
     }[location.pathname] || 0;
 
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-        <ThemeToggle />
+      <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 pt-20">
+        <TopNavigation />
         <div className="container mx-auto px-6 py-8">
           <Stepper currentStep={currentStep} steps={steps} />
           
@@ -1798,6 +1798,7 @@ const App = () => {
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/compare" element={<ComparativeResultsPage />} />
             <Route path="/results" element={<ResultsPage />} />
+            <Route path="/results/:runId" element={<ResultsPage />} />
             <Route path="/applications" element={<ApplicationsPage />} />
           </Routes>
         </div>
