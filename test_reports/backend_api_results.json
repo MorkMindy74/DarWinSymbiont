@@ -1,9 +1,9 @@
 {
   "summary": {
-    "total_tests": 11,
-    "passed_tests": 1,
-    "success_rate": 9.090909090909092,
-    "timestamp": "2025-09-28T07:07:17.117540"
+    "total_tests": 14,
+    "passed_tests": 12,
+    "success_rate": 85.71428571428571,
+    "timestamp": "2025-09-28T09:10:59.695580"
   },
   "test_results": [
     {
@@ -12,87 +12,353 @@
       "success": true,
       "details": "Status: 200",
       "response_data": null,
-      "timestamp": "2025-09-28T07:06:34.984120"
+      "timestamp": "2025-09-28T09:05:45.263995"
     },
     {
       "test": "PDF Upload",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:05.028295"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Uploaded 1 files, Job ID: 56c59f69-0869-4ad5-be91-a4d93cfa3557",
+      "response_data": {
+        "files": [
+          {
+            "id": "05298ac8-d0bf-4572-ad40-3afb486b7543",
+            "name": "test_paper.pdf",
+            "size": 328
+          }
+        ],
+        "jobId": "56c59f69-0869-4ad5-be91-a4d93cfa3557"
+      },
+      "timestamp": "2025-09-28T09:05:45.301539"
     },
     {
       "test": "Get Studies",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=10)",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117351"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Retrieved 10 studies",
+      "response_data": {
+        "studies": [
+          {
+            "_id": "68d8ddfdb5241c779352cd49",
+            "id": "ee735357-fa5c-4f89-ac25-89edf4388fa5",
+            "name": "test_paper.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T07:04:29.734000",
+            "status": "processing"
+          },
+          {
+            "_id": "68d8ded9b5241c779352cd4c",
+            "id": "5a96f8b8-b6df-467d-bb62-d6898917e296",
+            "name": "test_paper.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T07:08:09.034000",
+            "status": "processing"
+          },
+          {
+            "_id": "68d8df04b5241c779352cd4d",
+            "id": "a7eac175-528b-45cb-8580-661ecb31feae",
+            "name": "test_research_paper.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T07:08:52.855000",
+            "status": "processing"
+          },
+          {
+            "_id": "68d8df9faec48516efb49b11",
+            "id": "e6a84201-cf56-4705-b3b5-42e23a30036d",
+            "name": "research_paper_test.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T07:11:27.831000",
+            "status": "completed"
+          },
+          {
+            "_id": "68d8e0c7aec48516efb49b13",
+            "id": "11933268-9a7c-4c84-85b4-1c212efda089",
+            "name": "Sortin_Barrier.pdf",
+            "pages": 17,
+            "created_at": "2025-09-28T07:16:23.462000",
+            "status": "completed"
+          },
+          {
+            "_id": "68d8e813dfb46013db1db712",
+            "id": "0af8d990-b465-45ea-a05c-f6a7bfd3100d",
+            "name": "Sortin_Barrier.pdf",
+            "pages": 17,
+            "created_at": "2025-09-28T07:47:31.044000",
+            "status": "completed"
+          },
+          {
+            "_id": "68d8e872dfb46013db1db754",
+            "id": "69ee3033-8963-41a6-bb84-e4b454d371a5",
+            "name": "Sortin_Barrier.pdf",
+            "pages": 17,
+            "created_at": "2025-09-28T07:49:06.610000",
+            "status": "completed"
+          },
+          {
+            "_id": "68d8f1ece50d75a28583cd65",
+            "id": "1bd10337-011d-4a74-98bf-69542efe7cb9",
+            "name": "s41598-025-10371-w.pdf",
+            "pages": 18,
+            "created_at": "2025-09-28T08:29:32.304000",
+            "status": "completed"
+          },
+          {
+            "_id": "68d8f7f42167108c6186070f",
+            "id": "f11013db-3dc3-43ec-b3e6-1313b723dba0",
+            "name": "test_paper.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T08:55:16.854000",
+            "status": "processing"
+          },
+          {
+            "_id": "68d8fa692167108c61860712",
+            "id": "05298ac8-d0bf-4572-ad40-3afb486b7543",
+            "name": "test_paper.pdf",
+            "pages": 1,
+            "created_at": "2025-09-28T09:05:45.299000",
+            "status": "processing"
+          }
+        ]
+      },
+      "timestamp": "2025-09-28T09:05:47.341000"
     },
     {
       "test": "LLM Summarize",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No uploaded files to test with",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117377"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Generated 1 summaries",
+      "response_data": {
+        "summaries": [
+          {
+            "studyId": "05298ac8-d0bf-4572-ad40-3afb486b7543",
+            "text": "- Problem addressed: Choosing the best option when there are countless possibilities. Many real tasks (like tuning machine learning models, prices, or schedules) are hard because small changes can lead to very different outcomes and simple methods get stuck in okay-but-not-great answers.\n\n- Method (short): The study uses evolution-inspired search. A system (DarWinSymbiont) creates many candidate solutions, tests them, keeps the better ones, and combines them to make new candidates. This cycle repeats, steadily improving results.\n\n- Key results: In simulation, the approach reached a best score (fitness) of 0.8547 and found its top solution by the 67th improvement round (\u201cgeneration\u201d). It beat the comparison method, showing faster, better progress on tough optimization tasks.\n\n- Limitations: Results depend on how the goal is defined; a poor goal leads to poor solutions. It can require significant computing time for very large problems. Settings (like how many candidates to keep or how much to change them each round) may need tuning. Performance can vary across datasets and may be harder to explain than simple rules.\n\n- Why it matters: Smarter search means better decisions with less trial and error. This can improve model accuracy, reduce costs, and make operations more reliable in areas like machine learning, pricing, scheduling, and resource planning. The numbers suggest the method can find strong solutions quickly and more consistently than common alternatives."
+          }
+        ]
+      },
+      "timestamp": "2025-09-28T09:05:59.521360"
     },
     {
       "test": "LLM Problem Analysis",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No uploaded files to test with",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117383"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Generated 1 problem analyses",
+      "response_data": {
+        "problems": [
+          {
+            "studyId": "05298ac8-d0bf-4572-ad40-3afb486b7543",
+            "text": "The study tackles complex optimization: choosing the best combination of decisions when there are astronomically many possibilities, tangled relationships, and real-world constraints. In such spaces, small changes can flip outcomes, multiple \u201cgood-enough\u201d traps exist, and standard methods (grid search, simple heuristics, gradient-based approaches) often get stuck or break constraints.\n\nReal-world example: A bank is building a fraud detection system. It must tune dozens of model choices\u2014features, thresholds, and hyperparameters\u2014while meeting latency limits for real-time transactions, fairness constraints, and integration rules. The space of possible configurations is enormous, interactions are nonlinear (changing a threshold may require different features), and evaluating each option is costly. Brute-force search is infeasible, and gradient methods don\u2019t apply cleanly because many decisions are discrete. The study addresses this by using evolution-inspired search to explore broadly, keep promising configurations, and recombine them to escape local traps. This yields higher-quality, constraint-respecting solutions without exhaustive trial-and-error."
+          }
+        ]
+      },
+      "timestamp": "2025-09-28T09:06:08.292085"
     },
     {
       "test": "LLM Compare",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No uploaded files to test with",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117387"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Generated comparison: True",
+      "response_data": {
+        "comparison": "Overall evaluation:\nThe study demonstrates an evolutionary approach to complex optimization and reports promising simulation results. However, compared to widely validated methods and benchmarks in the literature, its empirical rigor appears narrower (fewer standardized datasets, metrics, and reproducibility artifacts). Stronger approaches exist with broader evaluations, clearer metrics, and public code.\n\nStronger approaches and benchmarks (titles/authors/year):\n- A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II \u2014 Kalyanmoy Deb, Amrit Pratap, Sameer Agarwal, T. Meyarivan (2002)\n- Completely Derandomized Self-Adaptation in Evolution Strategies (CMA-ES) \u2014 Nikolaus Hansen, Andreas Ostermeier (2001)\n- Differential Evolution \u2013 A Simple and Efficient Heuristic for Global Optimization \u2014 Rainer Storn, Kenneth Price (1997)\n- Sequential Model-Based Optimization for General Algorithm Configuration (SMAC) \u2014 Frank Hutter, Holger Hoos, Kevin Leyton-Brown (2011)\n- Algorithms for Hyper-Parameter Optimization (TPE) \u2014 James Bergstra, Yoshua Bengio (2012)\n- BOHB: Robust and Efficient Hyperparameter Optimization at Scale \u2014 Stefan Falkner, Aaron Klein, Frank Hutter (2018)\n- Hyperband: A Novel Bandit-Based Approach to Hyperparameter Optimization \u2014 Lisha Li, Kevin Jamieson, Giulia DeSalvo, Afshin Rostamizadeh, Ameet Talwalkar (2018)\n- COCO: A Platform for Comparing Continuous Optimizers in a Black-Box Setting \u2014 Nikolaus Hansen et al. (2021)\n- An Open Source AutoML Benchmark \u2014 Pieter Gijsbers et al. (2019)\n- Nevergrad: A Structured Approach to Black-Box Optimization \u2014 J\u00e9r\u00e9my Rapin, Olivier Teytaud (2018)\n- Optuna: A Next-generation Hyperparameter Optimization Framework \u2014 Takuya Akiba, Shotaro Sano, Toshihiko Yanase, Takeru Ohta, Masanori Koyama (2019)\n\nPros:\n- Shows clear improvement over a baseline in simulation.\n- Addresses non-convex, constrained optimization relevant to ML/operations.\n- Reports convergence behavior and a concrete best score.\n\nCons:\n- Limited external validity; lacks COCO/BBOB or OpenML-style benchmarks.\n- Metrics not standardized (no ERT/ECDF, hypervolume, regret, wall-clock budgets).\n- Reproducibility unclear (public code, seeds, configs, data).\n- No statistical analysis across multiple runs or datasets.\n- No ablations to isolate which components drive gains.",
+        "references": []
+      },
+      "timestamp": "2025-09-28T09:06:31.806689"
     },
     {
       "test": "LLM Improve",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No uploaded files to test with",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117391"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Generated suggestions: True",
+      "response_data": {
+        "suggestions": "1) Expand search budget and scaling\n- Action: Sweep generations {10, 50, 100, 200} and popSize {20, 50, 100}.\n- Benefits: Reveals compute\u2013quality curve; avoids underpowered runs.\n- Risks: Higher compute cost.\n- Test: Plot anytime curves; measure ERT to 0.85 fitness, success rate \u22650.8547, wall-clock.\n\n2) Core parameter sweeps\n- Action: LHS over mutationRate [0.05\u20130.4], crossoverRate [0.5\u20131.0], elitism {0,1,2}, tournamentSize {2,3,5}.\n- Benefits: Identifies robust defaults.\n- Risks: Combinatorial explosion.\n- Test: 20 seeds/config; report median best-fitness, gens to 0.8547 vs baseline (pop=20, mut=0.1).\n\n3) Adaptive parameter control\n- Action: Self-adapt mutation via 1/5 success rule; decay crossover late-stage.\n- Benefits: Faster early exploration, stable late exploitation.\n- Risks: Instability on noisy objectives.\n- Test: Compare fixed vs adaptive under equal evals; track variance and AUAC.\n\n4) Operator ablations\n- Action: Compare SBX vs uniform crossover; Gaussian vs polynomial mutation; selection: tournament vs rank.\n- Benefits: Isolates high-impact components.\n- Risks: Large matrix.\n- Test: One-change-at-a-time; report effect sizes and CI on final fitness.\n\n5) Smart initialization\n- Action: Sobol/LHS seeding + heuristic warm starts (if available).\n- Benefits: Better early fitness.\n- Risks: Bias to subspaces.\n- Test: Measure gens/evals to reach 0.80/0.85 vs random init.\n\n6) Diversity maintenance\n- Action: Crowding distance, fitness sharing, \u03b5-lexicase selection.\n- Benefits: Avoids premature convergence.\n- Risks: Slower exploitation.\n- Test: Track genotypic diversity and probability of surpassing 0.8547.\n\n7) Restart policies\n- Action: Trigger restart if no improvement in 10\u201320 gens; optionally increase popSize on restart.\n- Benefits: Escapes local optima.\n- Risks: Lost progress if too aggressive.\n- Test: Sensitivity sweep; compare final fitness quantiles and wall-clock.\n\n8) Constraint handling\n- Action: Compare penalty, repair, and Deb\u2019s feasibility rules.\n- Benefits: Higher feasible solution rate.\n- Risks: Penalty tuning.\n- Test: Report feasibility %, violation magnitude, best feasible fitness.\n\n9) Hybrid memetic steps\n- Action: Apply local search (CMA-ES/gradient) to elites every N gens.\n- Benefits: Sharper final solutions.\n- Risks: Extra compute; local traps.\n- Test: Fixed eval budget; allocate 10\u201320% to local search; compare final fitness.\n\n10) Surrogate-assisted EA\n- Action: Train RF/GP/GBDT surrogate; select candidates via EI/TS; periodic refits.\n- Benefits: Fewer true evaluations.\n- Risks: Model bias.\n- Test: Cap true evals; measure evals to 0.85 and regret vs baseline.\n\n11) Multiobjective framing\n- Action: Optimize fitness + runtime/robustness with NSGA-II.\n- Benefits: Balanced trade-offs.\n- Risks: Choice of final solution.\n- Test: Hypervolume and knee-point performance vs scalarized baseline.\n\n12) Noise handling\n- Action: k-fold resampling, median-of-k, racing; uncertainty-aware selection.\n- Benefits: Reliable ranking under noise.\n- Risks: More evals.\n- Test: Inject noise; report misranking rate, CI widths.\n\n13) Statistical rigor and reproducibility\n- Action: \u226530 seeds; Wilcoxon/Cliff\u2019s delta; publish code/configs/seeds.\n- Benefits: Credible, repeatable results.\n- Risks: Compute overhead.\n- Test: Pre-register metrics (ERT to 0.85, AUAC, wall-clock); release artifacts."
+      },
+      "timestamp": "2025-09-28T09:06:56.448028"
     },
     {
       "test": "DWS Run",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No uploaded files to test with",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117396"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Started simulation with run ID: a824d7c8-07df-4876-885f-33beb790d4e4",
+      "response_data": {
+        "runId": "a824d7c8-07df-4876-885f-33beb790d4e4"
+      },
+      "timestamp": "2025-09-28T09:06:56.506354"
     },
     {
       "test": "DWS Summary",
-      "status": "\u274c FAIL",
-      "success": false,
-      "details": "No run ID available",
-      "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117400"
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Run status: completed",
+      "response_data": {
+        "runId": "a824d7c8-07df-4876-885f-33beb790d4e4",
+        "status": "completed",
+        "metrics": {
+          "best_fitness": 0.4693081486863385,
+          "avg_fitness": 0.37544651894907083,
+          "generations": 10,
+          "convergence_generation": 5
+        },
+        "artifacts": {
+          "plots": [
+            "/api/dws/a824d7c8-07df-4876-885f-33beb790d4e4/plot"
+          ],
+          "logs": "/api/dws/a824d7c8-07df-4876-885f-33beb790d4e4/logs"
+        }
+      },
+      "timestamp": "2025-09-28T09:06:59.551094"
     },
     {
       "test": "LaTeX Generation",
       "status": "\u274c FAIL",
       "success": false,
-      "details": "No run ID or uploaded files available",
+      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=90)",
       "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117405"
+      "timestamp": "2025-09-28T09:08:29.667075"
     },
     {
       "test": "Applications Generation",
       "status": "\u274c FAIL",
       "success": false,
-      "details": "No uploaded files available",
+      "details": "Error: HTTPSConnectionPool(host='pdf-evolution.preview.emergentagent.com', port=443): Read timed out. (read timeout=60)",
       "response_data": null,
-      "timestamp": "2025-09-28T07:07:17.117408"
+      "timestamp": "2025-09-28T09:09:29.788084"
+    },
+    {
+      "test": "Context-Aware Business Proposals",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Generated 8 context-aware business proposals",
+      "response_data": {
+        "proposals": [
+          {
+            "title": "AutoML Hyperparameter and Pipeline Optimization",
+            "problem": "Test problem analysis \u2014 selecting optimal ML hyperparameters and feature pipelines in vast, nonlinear search spaces.",
+            "solution": "Leverage DarWinSymbiont\u2019s evolutionary search (selection/crossover/mutation) guided by paper insights to explore configurations broadly and converge to high-quality models without exhaustive trials.",
+            "metrics": "Target \u22650.85 validation objective (best_fitness=0.8547) within \u226467 generations; avg_fitness baseline 0.6838; budget up to 100 generations; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "Expected +5\u201312% model AUC or accuracy uplift; 3\u20136x ROI from improved conversions/retention.",
+            "nextStep": "Run a 2-week pilot on a key prediction task; define objective; compare against incumbent tuner under equal compute."
+          },
+          {
+            "title": "Dynamic Pricing and Promotion Mix",
+            "problem": "Test problem analysis \u2014 optimizing price/discount vectors under demand, cannibalization, and inventory constraints.",
+            "solution": "Apply DarWinSymbiont to search constrained price spaces, recombining promising price strategies and pruning poor ones to raise profit while meeting stock limits.",
+            "metrics": "Normalize profit objective; aim \u22650.85 (best_fitness=0.8547) by gen \u226467; monitor anytime curves vs heuristic baseline; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "2\u20135% gross margin lift; 4\u20138x ROI from incremental profit.",
+            "nextStep": "Pilot on top 500 SKUs for 6 weeks with weekly re-optimization."
+          },
+          {
+            "title": "Workforce and Shift Scheduling",
+            "problem": "Test problem analysis \u2014 assigning staff to shifts under skills, labor laws, and SLA constraints.",
+            "solution": "Use DarWinSymbiont to evolve schedules that balance coverage, overtime, and preferences, escaping local optima common in rule-based schedulers.",
+            "metrics": "Service-level objective \u22650.85 within \u226467 gens; track feasibility rate; avg_fitness baseline 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "5\u201310% overtime reduction and 1\u20133 pt SLA improvement; 3\u20137x ROI.",
+            "nextStep": "Run a 30-day pilot on one site\u2019s rosters; integrate constraints and demand forecasts."
+          },
+          {
+            "title": "Inventory Policy and Replenishment Optimization",
+            "problem": "Test problem analysis \u2014 tuning reorder points and safety stocks across locations under uncertain demand.",
+            "solution": "DarWinSymbiont co-optimizes policy parameters, using evolutionary search to trade off stockouts vs carrying cost.",
+            "metrics": "Composite objective (cost\u2013service) \u22650.85 (best_fitness=0.8547) by gen \u226467; avg_fitness baseline 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "5\u201312% inventory cost reduction; 4\u20139x ROI from lower working capital and expedites.",
+            "nextStep": "Optimize three representative SKUs per DC; validate in a digital twin for 8 weeks."
+          },
+          {
+            "title": "Cross-Channel Marketing Budget Allocation",
+            "problem": "Test problem analysis \u2014 allocating spend across channels and creatives with saturation and lag effects.",
+            "solution": "Use DarWinSymbiont to evolve spend and creative mixes that maximize conversions/ROAS while respecting budget and guardrails.",
+            "metrics": "Reach \u22650.85 normalized ROI objective by gen \u226467; avg_fitness 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "6\u201315% ROAS improvement or 10\u201320% CAC reduction; 4\u20139x ROI.",
+            "nextStep": "Run a 4-week holdout test across 5 channels with weekly re-optimization."
+          },
+          {
+            "title": "Logistics Routing and Load Consolidation",
+            "problem": "Test problem analysis \u2014 planning vehicle routes and loads under time windows and capacity limits.",
+            "solution": "DarWinSymbiont evolves route plans, recombining efficient subroutes to cut miles and late deliveries under realistic constraints.",
+            "metrics": "Operational objective \u22650.85 (best_fitness=0.8547) within \u226467 gens; avg_fitness 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "8\u201315% transport cost savings; 5\u201310x ROI via fuel and penalty reductions.",
+            "nextStep": "Pilot on two depots for 30 days; integrate TMS feeds; daily optimization runs."
+          },
+          {
+            "title": "Product Configuration and Bundle Design",
+            "problem": "Test problem analysis \u2014 selecting feature bundles and price points to maximize uptake and margin.",
+            "solution": "Apply DarWinSymbiont to search bundle combinations, balancing margin, cannibalization, and willingness-to-pay signals.",
+            "metrics": "Target \u22650.85 bundle objective by gen \u226467; avg_fitness 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "3\u20137% revenue uplift from better bundles; 3\u20136x ROI.",
+            "nextStep": "A/B/n test top 5 evolved bundles over two cycles; monitor margin and conversion."
+          },
+          {
+            "title": "Experiment Portfolio and Threshold Optimization",
+            "problem": "Test problem analysis \u2014 choosing optimal A/B/n test portfolios and decision thresholds under traffic limits.",
+            "solution": "Use DarWinSymbiont to evolve experiment selections and stopping thresholds to maximize expected lift within capacity constraints.",
+            "metrics": "Portfolio objective \u22650.85 (best_fitness=0.8547) by gen \u226467; avg_fitness 0.6838; budget 100 gens; verdict=outperformed.",
+            "market": "test_domain_0",
+            "roi": "20\u201340% faster learning cycles; 3\u20135x ROI from earlier wins and reduced opportunity cost.",
+            "nextStep": "Deploy on the next quarter\u2019s roadmap; weekly re-optimization with updated priors."
+          }
+        ]
+      },
+      "timestamp": "2025-09-28T09:10:32.275431"
+    },
+    {
+      "test": "Data Consistency Check",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Consistency: True, Inconsistencies: 0, Threshold: 20.0%",
+      "response_data": {
+        "consistent": true,
+        "inconsistencies": [],
+        "simulation_metrics": {
+          "best_fitness": 0.4693081486863385,
+          "avg_fitness": 0.37544651894907083,
+          "generations": 10,
+          "convergence_generation": 5
+        },
+        "paper_metrics": {},
+        "threshold_percent": 20.0
+      },
+      "timestamp": "2025-09-28T09:10:37.345167"
+    },
+    {
+      "test": "Performance Comparison",
+      "status": "\u2705 PASS",
+      "success": true,
+      "details": "Verdict: mixed, Has summary: True, Comparison entries: 2",
+      "response_data": {
+        "verdict": "mixed",
+        "summary": "A direct head-to-head comparison is not possible because the original study\u2019s metrics and method details were not provided. In our simulation, DarWinSymbiont reached a best score of 0.4693, with an average of 0.3754 over 10 generations, and appeared to stabilize by generation 5. This indicates quick progress within a short run. However, without the original study\u2019s best score, convergence point, time budget, or objective definition, we cannot judge whether DarWinSymbiont is better or worse in absolute terms. The fast convergence is encouraging, while the gap between best and average suggests more tuning or longer runs could improve overall quality.",
+        "comparisonTable": [
+          {
+            "metric": "Performance",
+            "studyResult": "Not provided",
+            "dwsResult": "Best 0.4693, Avg 0.3754"
+          },
+          {
+            "metric": "Convergence",
+            "studyResult": "Not provided",
+            "dwsResult": "Converged by gen 5 (of 10)"
+          }
+        ],
+        "dwsStrengths": [
+          "Fast convergence by generation 5",
+          "Delivers a clear best solution within a short 10-generation budget"
+        ],
+        "studyLimitations": [
+          "Original study metrics (best score, average, convergence) not provided",
+          "Original method and evaluation budget unknown, preventing fair normalization"
+        ],
+        "studyMetrics": {
+          "best": "Not provided",
+          "convergence": "Not provided",
+          "method": "Not provided"
+        }
+      },
+      "timestamp": "2025-09-28T09:10:59.694698"
     }
   ]
 }
