@@ -1806,13 +1806,19 @@ const App = () => {
     );
   };
 
-  return (
-    <ThemeProvider>
+  const AppWrapper = () => {
+    return (
       <BrowserRouter>
-        <AppContent />
+        <NavigationProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+        </NavigationProvider>
       </BrowserRouter>
-    </ThemeProvider>
-  );
+    );
+  };
+
+  return <AppWrapper />;
 };
 
 export default App;
