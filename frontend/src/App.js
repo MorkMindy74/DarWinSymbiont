@@ -876,12 +876,15 @@ const SimulationPage = () => {
 const ResultsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [runId] = useState(location.state?.runId);
+  const { addToHistory } = useNavigation();
+  const [runId] = useState(location.state?.runId || location.pathname.split('/').pop());
   const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
   const [analyses] = useState(location.state?.analyses || {});
   const [comparison] = useState(location.state?.comparison || null);
   const [latex, setLatex] = useState('');
   const [loadingLatex, setLoadingLatex] = useState(false);
+  const [consistencyCheck, setConsistencyCheck] = useState(null);
+  const [showInconsistencyBanner, setShowInconsistencyBanner] = useState(false);
 
   const generateLatex = async () => {
     if (!runId || uploadedFiles.length === 0) return;
