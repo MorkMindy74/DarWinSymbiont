@@ -759,6 +759,7 @@ const ResultsPage = () => {
   const [runId] = useState(location.state?.runId);
   const [uploadedFiles] = useState(location.state?.uploadedFiles || []);
   const [analyses] = useState(location.state?.analyses || {});
+  const [comparison] = useState(location.state?.comparison || null);
   const [latex, setLatex] = useState('');
   const [loadingLatex, setLoadingLatex] = useState(false);
 
