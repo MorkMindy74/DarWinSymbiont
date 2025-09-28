@@ -1004,6 +1004,91 @@ const ComparativeResultsPage = () => {
         </p>
       </div>
 
+      {/* Enhanced View Controls */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Comparison Controls</span>
+            <div className="flex items-center gap-4">
+              {/* View Mode Toggle */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('comparison')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'comparison' 
+                      ? 'bg-white text-black shadow-sm' 
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                  data-testid="comparison-view-toggle"
+                >
+                  Split Comparison
+                </button>
+                <button
+                  onClick={() => setViewMode('simulation')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'simulation' 
+                      ? 'bg-white text-black shadow-sm' 
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                  data-testid="simulation-view-toggle"
+                >
+                  Simulation Only
+                </button>
+                <button
+                  onClick={() => setViewMode('study')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'study' 
+                      ? 'bg-white text-black shadow-sm' 
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                  data-testid="study-view-toggle"
+                >
+                  Study Only
+                </button>
+              </div>
+              
+              {/* Study Selector */}
+              {uploadedFiles.length > 1 && (
+                <select
+                  value={selectedStudyForComparison}
+                  onChange={(e) => setSelectedStudyForComparison(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                  data-testid="study-selector"
+                >
+                  {uploadedFiles.map((file, index) => (
+                    <option key={file.id} value={index}>
+                      {studyTags[file.id] || file.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Study Tagging Interface */}
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-700">Study Tags & Classification:</h4>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {uploadedFiles.map((file) => (
+                <div key={file.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                  <input
+                    type="text"
+                    value={studyTags[file.id] || ''}
+                    onChange={(e) => setStudyTags(prev => ({ ...prev, [file.id]: e.target.value }))}
+                    className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded"
+                    placeholder="Tag this study..."
+                  />
+                  <Badge variant="outline" className="text-xs">
+                    {file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {loading ? (
         <Card>
           <CardContent className="pt-6">
