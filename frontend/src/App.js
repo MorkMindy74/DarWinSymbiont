@@ -948,6 +948,30 @@ const ResultsPage = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
         <h2 className="text-2xl font-semibold mb-6">Results & Paper Generation</h2>
+        
+        {/* Data Inconsistency Banner */}
+        {showInconsistencyBanner && consistencyCheck && (
+          <Alert className="mb-6 border-yellow-200 bg-yellow-50">
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong>⚠️ Data Inconsistency Detected</strong>
+                  <p className="text-sm mt-1">
+                    Found {consistencyCheck.inconsistencies.length} potential mismatches between simulation 
+                    and paper metrics (threshold: {consistencyCheck.threshold_percent}%).
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowInconsistencyBanner(false)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <Card>
