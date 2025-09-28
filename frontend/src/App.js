@@ -1518,7 +1518,8 @@ const App = () => {
     }[location.pathname] || 0;
 
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+        <ThemeToggle />
         <div className="container mx-auto px-6 py-8">
           <Stepper currentStep={currentStep} steps={steps} />
           
