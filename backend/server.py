@@ -129,6 +129,14 @@ class ApplicationRequest(BaseModel):
     runId: Optional[str] = None
     studyIds: List[str]
 
+class BusinessRequest(BaseModel):
+    paperFindings: dict
+    simulationResults: dict
+    constraints: Optional[dict] = {"maxCards": 10, "tone": "concise"}
+
+class ConsistencyCheckRequest(BaseModel):
+    runId: str
+
 # Helper functions
 async def extract_pdf_text(file_path: Path) -> tuple[str, int]:
     """Extract text from PDF and return with page count"""
