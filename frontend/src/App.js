@@ -1592,9 +1592,10 @@ const ApplicationsPage = () => {
 
   useEffect(() => {
     if (uploadedFiles.length > 0) {
-      generateApplications();
+      generateContextAwareProposals();
+      addToHistory(location.pathname, { runId, uploadedFiles, analyses, comparison });
     }
-  }, [uploadedFiles]);
+  }, [uploadedFiles, runId]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
