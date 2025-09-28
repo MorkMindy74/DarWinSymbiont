@@ -544,6 +544,11 @@ class DarWinSymbiontAPITester:
         self.test_latex_generation()
         self.test_applications_generation()
         
+        # NEW ENHANCED FEATURES TESTS
+        self.test_context_aware_business_proposals()
+        self.test_data_consistency_check()
+        self.test_compare_performance()
+        
         # Print summary
         print("\n" + "=" * 60)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
