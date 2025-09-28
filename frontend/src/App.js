@@ -1695,7 +1695,58 @@ const ApplicationsPage = () => {
         </Card>
       </div>
 
-      {applications.length > 0 && (
+      {/* Context-Aware Business Proposals */}
+      {contextAwareProposals.length > 0 && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            🎯 Context-Aware Business Proposals
+            <Badge variant="outline" className="bg-green-100">
+              Based on Your Research & Results
+            </Badge>
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            {contextAwareProposals.map((proposal, index) => (
+              <Card key={index} className="border-l-4 border-l-blue-500">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>{proposal.title}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {proposal.market || 'General'}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                  <div className="p-3 bg-red-50 rounded-md border-l-2 border-red-200">
+                    <strong className="text-red-700">Problem:</strong>
+                    <p className="mt-1 text-red-600">{proposal.problem}</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-md border-l-2 border-blue-200">
+                    <strong className="text-blue-700">DarWinSymbiont Solution:</strong>
+                    <p className="mt-1 text-blue-600">{proposal.solution}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-2 bg-green-50 rounded">
+                      <strong className="text-green-700">Success Metrics:</strong>
+                      <p className="text-green-600 text-xs mt-1">{proposal.metrics}</p>
+                    </div>
+                    <div className="p-2 bg-purple-50 rounded">
+                      <strong className="text-purple-700">Expected ROI:</strong>
+                      <p className="text-purple-600 text-xs mt-1">{proposal.roi}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-md">
+                    <strong className="text-gray-700">Next Step:</strong>
+                    <p className="mt-1 text-gray-600">{proposal.nextStep}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fallback to generic applications if context-aware fails */}
+      {contextAwareProposals.length === 0 && applications.length > 0 && (
         <div>
           <h3 className="text-xl font-semibold mb-4">Generated Use Cases</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
