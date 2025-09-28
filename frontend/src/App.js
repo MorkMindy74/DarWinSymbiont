@@ -1080,8 +1080,9 @@ const App = () => {
       '/': 0,
       '/analysis': 1,
       '/simulation': 2,
-      '/results': 3,
-      '/applications': 4
+      '/compare': 3,
+      '/results': 4,
+      '/applications': 5
     }[location.pathname] || 0;
 
     return (
