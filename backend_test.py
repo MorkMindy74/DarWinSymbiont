@@ -383,6 +383,138 @@ class DarWinSymbiontAPITester:
         except Exception as e:
             return self.log_test("Applications Generation", False, f"Error: {str(e)}")
 
+    def test_context_aware_business_proposals(self):
+        """Test context-aware business proposals API (NEW FEATURE)"""
+        if not self.uploaded_files:
+            return self.log_test("Context-Aware Business Proposals", False, "No uploaded files available")
+        
+        try:
+            # Prepare mock paper findings and simulation results
+            paper_findings = {
+                "summaries": [{"text": "Test summary of research paper"}],
+                "problems": [{"text": "Test problem analysis"}],
+                "improvements": "Test improvement suggestions",
+                "comparison_insights": "Test comparison insights",
+                "study_count": len(self.uploaded_files),
+                "domains": [f"test_domain_{i}" for i in range(len(self.uploaded_files))]
+            }
+            
+            simulation_results = {
+                "best_fitness": 0.8547,
+                "convergence_generation": 67,
+                "total_generations": 100,
+                "avg_fitness": 0.6838,
+                "performance_verdict": "outperformed"
+            }
+            
+            payload = {
+                "paperFindings": paper_findings,
+                "simulationResults": simulation_results,
+                "constraints": {"maxCards": 8, "tone": "concise"}
+            }
+            
+            response = requests.post(
+                f"{self.api_url}/llm/business", 
+                json=payload, 
+                timeout=90
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                proposals_count = len(data.get('proposals', []))
+                return self.log_test(
+                    "Context-Aware Business Proposals", 
+                    True,
+                    f"Generated {proposals_count} context-aware business proposals",
+                    data
+                )
+            else:
+                return self.log_test(
+                    "Context-Aware Business Proposals", 
+                    False, 
+                    f"Status: {response.status_code}, Response: {response.text[:200]}"
+                )
+                
+        except Exception as e:
+            return self.log_test("Context-Aware Business Proposals", False, f"Error: {str(e)}")
+
+    def test_data_consistency_check(self):
+        """Test data consistency checking API (NEW FEATURE)"""
+        if not self.run_id:
+            return self.log_test("Data Consistency Check", False, "No run ID available")
+        
+        try:
+            # Wait a bit more for simulation to complete
+            time.sleep(5)
+            
+            response = requests.get(
+                f"{self.api_url}/consistency/check?runId={self.run_id}", 
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                is_consistent = data.get('consistent', False)
+                inconsistencies_count = len(data.get('inconsistencies', []))
+                threshold = data.get('threshold_percent', 0)
+                
+                return self.log_test(
+                    "Data Consistency Check", 
+                    True,
+                    f"Consistency: {is_consistent}, Inconsistencies: {inconsistencies_count}, Threshold: {threshold}%",
+                    data
+                )
+            else:
+                return self.log_test(
+                    "Data Consistency Check", 
+                    False, 
+                    f"Status: {response.status_code}, Response: {response.text[:200]}"
+                )
+                
+        except Exception as e:
+            return self.log_test("Data Consistency Check", False, f"Error: {str(e)}")
+
+    def test_compare_performance(self):
+        """Test performance comparison API (NEW FEATURE)"""
+        if not self.run_id or not self.uploaded_files:
+            return self.log_test("Performance Comparison", False, "No run ID or uploaded files available")
+        
+        try:
+            study_ids = [file['id'] for file in self.uploaded_files]
+            payload = {
+                "runId": self.run_id,
+                "studyIds": study_ids,
+                "context": "Test performance comparison context"
+            }
+            
+            response = requests.post(
+                f"{self.api_url}/llm/compare-performance", 
+                json=payload, 
+                timeout=90
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                verdict = data.get('verdict', 'unknown')
+                has_summary = bool(data.get('summary'))
+                comparison_table_count = len(data.get('comparisonTable', []))
+                
+                return self.log_test(
+                    "Performance Comparison", 
+                    True,
+                    f"Verdict: {verdict}, Has summary: {has_summary}, Comparison entries: {comparison_table_count}",
+                    data
+                )
+            else:
+                return self.log_test(
+                    "Performance Comparison", 
+                    False, 
+                    f"Status: {response.status_code}, Response: {response.text[:200]}"
+                )
+                
+        except Exception as e:
+            return self.log_test("Performance Comparison", False, f"Error: {str(e)}")
+
     def run_all_tests(self):
         """Run all API tests in sequence"""
         print("🧪 Starting DarWinSymbiont Backend API Tests")
