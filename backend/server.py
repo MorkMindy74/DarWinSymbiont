@@ -117,6 +117,12 @@ class LLMRequest(BaseModel):
 class LaTeXRequest(BaseModel):
     runId: str
     studyIds: List[str]
+    comparison: Optional[dict] = None
+    context: Optional[str] = None
+
+class ComparisonRequest(BaseModel):
+    runId: str
+    studyIds: List[str]
     context: Optional[str] = None
 
 class ApplicationRequest(BaseModel):
