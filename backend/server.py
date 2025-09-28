@@ -290,11 +290,11 @@ async def process_pdfs(job_id: str, files: List[dict]):
             
             # Save chunks
             chunk_docs = []
-            for j, chunk_text in enumerate(chunks):
+            for j, chunk_content in enumerate(chunks):
                 chunk = Chunk(
                     study_id=file_info["id"],
                     seq=j,
-                    text=chunk_text
+                    text=chunk_content
                 )
                 chunk_docs.append(chunk.dict())
             
