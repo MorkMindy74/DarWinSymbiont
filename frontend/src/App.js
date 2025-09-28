@@ -1570,6 +1570,65 @@ const ApplicationsPage = () => {
   );
 };
 
+// Navigation Provider Component
+const NavigationProvider = ({ children }) => {
+  const [navigationHistory, setNavigationHistory] = useState([]);
+  const [unsavedData, setUnsavedData] = useState(false);
+  const navigate = useNavigate();
+
+  const addToHistory = (path, data = {}) => {
+    setNavigationHistory(prev => [...prev, { path, data, timestamp: Date.now() }]);
+  };
+
+  const goBackOneStep = () => {
+    if (navigationHistory.length > 1) {
+      const previousStep = navigationHistory[navigationHistory.length - 2];
+      setNavigationHistory(prev => prev.slice(0, -1));
+      navigate(previousStep.path, { state: previousStep.data });
+    } else {
+      navigate('/');
+    }
+  };
+
+  const goHome = () => {
+    if (unsavedData) {
+      if (window.confirm('You have unsaved data. Are you sure you want to go home?')) {
+        setNavigationHistory([]);
+        setUnsavedData(false);
+        navigate('/');
+      }
+    } else {
+      setNavigationHistory([]);
+      navigate('/');
+    }
+  };
+
+  const getPreviousRunId = () => {
+    const simulationSteps = navigationHistory.filter(step => 
+      step.path.includes('/simulation') || step.path.includes('/results/')
+    );
+    if (simulationSteps.length > 0) {
+      const lastSim = simulationSteps[simulationSteps.length - 1];
+      return lastSim.data?.runId || null;
+    }
+    return null;
+  };
+
+  return (
+    <NavigationContext.Provider value={{ 
+      navigationHistory, 
+      addToHistory, 
+      goBackOneStep, 
+      goHome, 
+      unsavedData, 
+      setUnsavedData,
+      getPreviousRunId
+    }}>
+      {children}
+    </NavigationContext.Provider>
+  );
+};
+
 // Theme Provider Component
 const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
