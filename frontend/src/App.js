@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
+
+// Theme Context for Dark/Light Mode
+const ThemeContext = createContext();
+const useTheme = () => useContext(ThemeContext);
 
 // Import shadcn components
 import { Button } from './components/ui/button';
