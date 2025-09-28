@@ -1536,9 +1536,11 @@ const App = () => {
   };
 
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 
