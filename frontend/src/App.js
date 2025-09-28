@@ -741,11 +741,11 @@ const SimulationPage = () => {
           Back to Analysis
         </Button>
         <Button 
-          onClick={() => navigate('/results', { state: { runId, uploadedFiles, analyses } })}
+          onClick={() => navigate('/compare', { state: { runId, uploadedFiles, analyses } })}
           disabled={isRunning || !runId}
-          data-testid="view-results-button"
+          data-testid="view-compare-button"
         >
-          View Results & Generate LaTeX
+          Compare Results
         </Button>
       </div>
     </div>
