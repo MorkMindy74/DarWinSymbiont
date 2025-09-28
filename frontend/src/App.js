@@ -19,6 +19,7 @@ import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Skeleton } from './components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './components/ui/tooltip';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
