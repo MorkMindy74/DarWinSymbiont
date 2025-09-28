@@ -28,32 +28,100 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './comp
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Stepper Component
+// Stepper Component with Navigation
 const Stepper = ({ currentStep, steps }) => {
+  const { goBackOneStep, navigationHistory } = useNavigation();
+  const canGoBack = navigationHistory.length > 1 && currentStep > 0;
+
   return (
-    <div className="flex items-center justify-center mb-12">
-      {steps.map((step, index) => (
-        <div key={step} className="flex items-center">
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-            index <= currentStep 
-              ? 'bg-black text-white border-black' 
-              : 'bg-white text-gray-400 border-gray-300'
-          }`}>
-            {index + 1}
+    <div className="mb-12">
+      <div className="flex items-center justify-center mb-4">
+        {steps.map((step, index) => (
+          <div key={step} className="flex items-center">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+              index <= currentStep 
+                ? 'bg-black text-white border-black' 
+                : 'bg-white text-gray-400 border-gray-300'
+            }`}>
+              {index + 1}
+            </div>
+            <span className={`ml-3 text-sm font-medium ${
+              index <= currentStep ? 'text-black' : 'text-gray-400'
+            }`}>
+              {step}
+            </span>
+            {index < steps.length - 1 && (
+              <div className={`w-16 h-0.5 mx-4 ${
+                index < currentStep ? 'bg-black' : 'bg-gray-300'
+              }`} />
+            )}
           </div>
-          <span className={`ml-3 text-sm font-medium ${
-            index <= currentStep ? 'text-black' : 'text-gray-400'
-          }`}>
-            {step}
-          </span>
-          {index < steps.length - 1 && (
-            <div className={`w-16 h-0.5 mx-4 ${
-              index < currentStep ? 'bg-black' : 'bg-gray-300'
-            }`} />
-          )}
+        ))}
+      </div>
+      
+      {canGoBack && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goBackOneStep}
+            className="flex items-center gap-2"
+            data-testid="back-step-button"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Previous Step
+          </Button>
         </div>
-      ))}
+      )}
     </div>
+  );
+};
+
+// Data Provenance Tooltip Component
+const ProvenanceTooltip = ({ children, source, confidence = null }) => {
+  const getSourceIcon = (source) => {
+    switch(source) {
+      case 'simulation': return '⚡';
+      case 'paper': return '📄';
+      case 'llm': return '🤖';
+      default: return '❓';
+    }
+  };
+
+  const getSourceLabel = (source) => {
+    switch(source) {
+      case 'simulation': return 'Data from simulation output';
+      case 'paper': return 'Figure from referenced paper';
+      case 'llm': return 'Derived via LLM extraction';
+      default: return 'Unknown data source';
+    }
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="relative cursor-help">
+            {children}
+            <span className="absolute -top-1 -right-1 text-xs opacity-60">
+              {getSourceIcon(source)}
+            </span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-xs">
+            <div className="font-medium">{getSourceLabel(source)}</div>
+            {confidence && (
+              <div className="text-gray-500 mt-1">
+                Confidence: {Math.round(confidence * 100)}%
+              </div>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
