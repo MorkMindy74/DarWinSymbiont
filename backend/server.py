@@ -650,6 +650,10 @@ Format as JSON array of objects with keys: title, pain, solution, metric, nextSt
 async def get_studies():
     """Get all studies"""
     studies = await db.studies.find().to_list(1000)
+    # Convert ObjectId to string for JSON serialization
+    for study in studies:
+        if '_id' in study:
+            study['_id'] = str(study['_id'])
     return {"studies": studies}
 
 # WebSocket endpoints
