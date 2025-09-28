@@ -1340,6 +1340,7 @@ const App = () => {
             <Route path="/" element={<UploadPage />} />
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/compare" element={<ComparativeResultsPage />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/applications" element={<ApplicationsPage />} />
           </Routes>
