@@ -493,7 +493,11 @@ index 1234567..abcdefg 100644
             
             agent_ids = []
             
-            with patch('pathlib.Path.exists', return_value=False):
+            with patch('pathlib.Path.exists', return_value=False), \
+                 patch('subprocess.run') as mock_subprocess:
+                # Mock validation calls to speed up test
+                mock_subprocess.return_value = MagicMock(returncode=1, stdout="", stderr="")
+                
                 for i, config in enumerate(configs):
                     parent_id = agent_ids[-1] if agent_ids else None
                     agent_id = archive.save_agent(config, parent_id=parent_id)
