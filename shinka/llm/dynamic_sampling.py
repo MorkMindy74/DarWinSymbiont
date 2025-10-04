@@ -820,6 +820,13 @@ class ThompsonSamplingBandit(BanditBase):
         # Also decay submission counts
         self.n_submitted *= factor
         self.n_completed *= factor
+        
+        # For adaptive mapping, also decay reward history to handle non-stationarity
+        if self.reward_mapping == "adaptive" and len(self.reward_history) > 50:
+            # Keep only more recent samples when decaying
+            keep_samples = max(50, int(len(self.reward_history) * factor))
+            self.reward_history = self.reward_history[-keep_samples:]
+            self.baseline_history = self.baseline_history[-keep_samples:]
     
     def print_summary(self) -> None:
         """Print a summary table of the Thompson Sampling bandit state."""
