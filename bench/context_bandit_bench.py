@@ -130,29 +130,40 @@ class MockLLMScorer:
         return np.clip(fitness + noise + deception, 0, 1)
     
     def _tsp_function(self, solution: np.ndarray) -> float:
-        """TSP-like function (tour length optimization)."""
-        # Simple distance-based scoring for node sequence
-        n_cities = len(solution)
-        if n_cities < 10:
-            solution = np.tile(solution, (10 // len(solution) + 1))[:10]
+        """Real TSP function using Berlin52 TSPLIB coordinates."""
+        n_cities = len(self.berlin52_coords)
         
-        # Random city coordinates (consistent per seed)
-        cities = self.rng.uniform(-10, 10, (10, 2))
+        # Convert solution to permutation
+        # Use solution values to create a tour order
+        if len(solution) < n_cities:
+            # Extend solution by cycling
+            extended = np.tile(solution, (n_cities // len(solution) + 1))[:n_cities]
+        else:
+            extended = solution[:n_cities]
         
-        # Calculate tour length
-        tour_length = 0
-        for i in range(len(cities)):
-            curr_city = int(abs(solution[i]) * len(cities)) % len(cities)
-            next_city = int(abs(solution[(i + 1) % len(solution)]) * len(cities)) % len(cities)
+        # Create permutation from continuous values
+        sorted_indices = np.argsort(extended)
+        tour = sorted_indices
+        
+        # Calculate tour length using Berlin52 coordinates
+        tour_length = 0.0
+        for i in range(n_cities):
+            curr_city = tour[i]
+            next_city = tour[(i + 1) % n_cities]
             
-            distance = np.sqrt(np.sum((cities[curr_city] - cities[next_city])**2))
+            curr_pos = self.berlin52_coords[curr_city]
+            next_pos = self.berlin52_coords[next_city]
+            
+            distance = np.sqrt(np.sum((curr_pos - next_pos)**2))
             tour_length += distance
         
-        # Convert to fitness (lower tour length = higher fitness)
-        max_length = 50  # Approximate worst case
-        fitness = 1.0 - (tour_length / max_length)
+        # Convert to fitness (normalized by optimal)
+        # Better tours get higher fitness
+        fitness = max(0, 1.0 - (tour_length - self.optimal_tour_length) / self.optimal_tour_length)
         
-        noise = self.rng.normal(0, 0.02)
+        # Add small controlled noise
+        noise = self.rng.normal(0, 0.01)
+        
         return np.clip(fitness + noise, 0, 1)
     
     def _synthetic_function(self, solution: np.ndarray, context_info: Dict) -> float:
