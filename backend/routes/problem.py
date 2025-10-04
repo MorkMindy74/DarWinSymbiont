@@ -80,7 +80,7 @@ async def get_problem(problem_id: str, db: Optional[AsyncIOMotorDatabase] = Depe
 
 
 @router.get("/", response_model=List[ProblemCreate])
-async def list_problems(db: AsyncIOMotorDatabase = None, limit: int = 50):
+async def list_problems(limit: int = 50, db: Optional[AsyncIOMotorDatabase] = Depends(get_db)):
     """
     List all problems
     
