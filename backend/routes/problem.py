@@ -1,9 +1,9 @@
 """
 Problem routes
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from typing import List
+from typing import List, Optional
 
 try:
     from ..models.problem import ProblemInput, ProblemCreate, ProblemWithAnalysis
@@ -14,12 +14,12 @@ router = APIRouter(prefix="/api/problem", tags=["problem"])
 
 
 # Dependency to get database (will be injected)
-def get_db():
-    pass
+async def get_db() -> Optional[AsyncIOMotorDatabase]:
+    return None
 
 
 @router.post("/create", response_model=ProblemCreate, status_code=status.HTTP_201_CREATED)
-async def create_problem(problem_input: ProblemInput, db: AsyncIOMotorDatabase = None):
+async def create_problem(problem_input: ProblemInput, db: Optional[AsyncIOMotorDatabase] = Depends(get_db)):
     """
     Create a new optimization problem
     
