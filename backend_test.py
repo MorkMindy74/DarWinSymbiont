@@ -84,66 +84,43 @@ class EmergentAPITester:
             logger.error(f"❌ Health check failed: {e}")
             return False, f"Health check error: {e}"
 
-def test_thompson_sampling_basic():
-    """Test 2: Basic Thompson Sampling functionality"""
-    logger.info("Testing basic Thompson Sampling functionality...")
-    
-    try:
-        from shinka.llm.dynamic_sampling import ThompsonSamplingBandit
+    async def test_problem_creation(self) -> tuple[bool, str]:
+        """Test 2: Problem creation endpoint"""
+        logger.info("Testing problem creation endpoint...")
         
-        # Test bandit creation
-        bandit = ThompsonSamplingBandit(
-            arm_names=["model_a", "model_b", "model_c"],
-            seed=42,
-            prior_alpha=1.0,
-            prior_beta=1.0,
-            reward_mapping="adaptive"
-        )
-        logger.info("✅ Thompson Sampling bandit created successfully")
-        
-        # Test basic properties
-        assert bandit.n_arms == 3, f"Expected 3 arms, got {bandit.n_arms}"
-        assert bandit._arm_names == ["model_a", "model_b", "model_c"], "Arm names not set correctly"
-        logger.info("✅ Basic properties verified")
-        
-        # Test reward updates and posteriors
-        baseline = 0.5
-        
-        # Update with different rewards
-        bandit.update_submitted("model_a")
-        r1, b1 = bandit.update("model_a", reward=0.8, baseline=baseline)
-        
-        bandit.update_submitted("model_b") 
-        r2, b2 = bandit.update("model_b", reward=0.3, baseline=baseline)
-        
-        bandit.update_submitted("model_c")
-        r3, b3 = bandit.update("model_c", reward=0.6, baseline=baseline)
-        
-        logger.info(f"✅ Reward updates successful: r1={r1:.3f}, r2={r2:.3f}, r3={r3:.3f}")
-        
-        # Test posterior sampling
-        posterior = bandit.posterior()
-        assert len(posterior) == 3, f"Expected posterior length 3, got {len(posterior)}"
-        assert abs(sum(posterior) - 1.0) < 1e-6, f"Posterior doesn't sum to 1: {sum(posterior)}"
-        logger.info(f"✅ Posterior sampling working: {posterior}")
-        
-        # Test multi-sample posterior
-        multi_posterior = bandit.posterior(samples=100)
-        assert len(multi_posterior) == 3, "Multi-sample posterior wrong length"
-        assert abs(sum(multi_posterior) - 1.0) < 1e-6, "Multi-sample posterior doesn't sum to 1"
-        logger.info(f"✅ Multi-sample posterior working: {multi_posterior}")
-        
-        # Test reward mapping works correctly
-        # Model A got highest reward (0.8), should have higher alpha
-        assert bandit.alpha[0] > bandit.prior_alpha, "Model A alpha not increased after good reward"
-        assert bandit.alpha[1] > bandit.prior_alpha, "Model B alpha not increased (should get some from adaptive mapping)"
-        logger.info("✅ Reward mapping working correctly")
-        
-        return True, "Thompson Sampling basic functionality working correctly"
-        
-    except Exception as e:
-        logger.error(f"❌ Thompson Sampling test failed: {e}")
-        return False, f"Thompson Sampling error: {e}"
+        try:
+            url = f"{self.base_url}/api/problem/create"
+            headers = {"Content-Type": "application/json"}
+            
+            async with self.session.post(url, json=TSP_TEST_DATA, headers=headers) as response:
+                if response.status != 201:
+                    error_text = await response.text()
+                    return False, f"Problem creation failed with status {response.status}: {error_text}"
+                
+                data = await response.json()
+                
+                # Verify expected fields
+                required_fields = ["problem_id", "created_at", "problem_input", "status"]
+                for field in required_fields:
+                    if field not in data:
+                        return False, f"Missing field in problem response: {field}"
+                
+                # Verify problem_input matches what we sent
+                if data["problem_input"]["problem_type"] != TSP_TEST_DATA["problem_type"]:
+                    return False, "Problem type mismatch in response"
+                
+                if data["problem_input"]["title"] != TSP_TEST_DATA["title"]:
+                    return False, "Problem title mismatch in response"
+                
+                # Store problem_id for subsequent tests
+                self.created_problem_id = data["problem_id"]
+                
+                logger.info(f"✅ Problem created successfully: {self.created_problem_id}")
+                return True, f"Problem creation successful: {data['problem_id']}"
+                
+        except Exception as e:
+            logger.error(f"❌ Problem creation failed: {e}")
+            return False, f"Problem creation error: {e}"
 
 def test_context_aware_functionality():
     """Test 3: Context-Aware functionality"""
