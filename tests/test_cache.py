@@ -332,9 +332,17 @@ class TestCachedLLMClient(unittest.TestCase):
         
         # Mock underlying LLM client
         self.mock_llm_client = Mock()
-        self.mock_result = Mock(spec=QueryResult)
-        self.mock_result.content = "LLM Response"
-        self.mock_result.cost = 0.1
+        self.mock_result = QueryResult(
+            content="LLM Response",
+            msg="Test query",
+            system_msg="System message",
+            new_msg_history=[],
+            model_name="gpt-4",
+            kwargs={"temperature": 0.7},
+            input_tokens=10,
+            output_tokens=20,
+            cost=0.1
+        )
         self.mock_llm_client.query.return_value = self.mock_result
         
         self.cached_client = CachedLLMClient(self.mock_llm_client, self.cache)
