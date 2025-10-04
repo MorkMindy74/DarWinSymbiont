@@ -372,13 +372,24 @@ class EvolutionSimulator:
                 reward_mapping="adaptive"
             )
         elif config.algorithm == "ucb":
-            # UCB1 baseline (import and implement if not exists)
-            from shinka.llm.dynamic_sampling import AsymmetricUCB
-            self.bandit = AsymmetricUCB(
-                arm_names=models,
-                seed=config.seed,
-                c_param=1.4  # Standard UCB1 exploration parameter
-            )
+            # UCB1 baseline
+            try:
+                from shinka.llm.dynamic_sampling import AsymmetricUCB
+                self.bandit = AsymmetricUCB(
+                    arm_names=models,
+                    seed=config.seed,
+                    c_param=1.4  # Standard UCB1 exploration parameter
+                )
+            except ImportError:
+                logger.warning("AsymmetricUCB not available, using Thompson baseline")
+                self.bandit = ThompsonSamplingBandit(
+                    arm_names=models,
+                    seed=config.seed,
+                    prior_alpha=prior_alpha,
+                    prior_beta=prior_beta,
+                    auto_decay=auto_decay,
+                    reward_mapping="adaptive"
+                )
         elif config.algorithm == "epsilon":
             # Epsilon-greedy baseline
             self.bandit = EpsilonGreedyBandit(
