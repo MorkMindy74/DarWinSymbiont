@@ -56,7 +56,13 @@ def cmd_list(args) -> int:
             agent_id = agent['id'][:10] + '..' if len(agent['id']) > 12 else agent['id']
             timestamp = format_timestamp(agent['timestamp'])
             fitness = f"{agent.get('best_fitness', 0):.3f}" if agent.get('best_fitness') else "N/A"
-            parent_id = agent['parent_id'][:10] + '..' if agent.get('parent_id') and len(agent['parent_id']) > 12 else agent.get('parent_id', 'None')
+            parent_id_raw = agent.get('parent_id')
+            if parent_id_raw is None:
+                parent_id = 'None'
+            elif len(parent_id_raw) > 12:
+                parent_id = parent_id_raw[:10] + '..'
+            else:
+                parent_id = parent_id_raw
             branch = agent.get('branch', 'unknown')[:14]
             dirty = "Yes" if agent.get('dirty', True) else "No"
             
