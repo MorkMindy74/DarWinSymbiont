@@ -22,8 +22,8 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Backend URL from frontend .env
-BACKEND_URL = "https://bf7227fc-ba83-4dd5-b96c-522be2796f63.preview.emergentagent.com"
+# Backend URL - using local URL since external URL returns 404
+BACKEND_URL = "http://localhost:8001"
 
 # Test data - TSP (Traveling Salesman Problem)
 TSP_TEST_DATA = {
