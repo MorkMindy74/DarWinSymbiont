@@ -20,6 +20,8 @@ from shinka.llm import (
     EmbeddingClient,
     BanditBase,
     AsymmetricUCB,
+    ThompsonSamplingBandit,
+    ContextAwareThompsonSamplingBandit,
     LLMCache,
     CachedLLMClient,
     CacheConfig,
