@@ -45,10 +45,9 @@ def test_evolution_runner_with_caching():
         )
         
         # Create JobConfig and DatabaseConfig
-        job_config = JobConfig(
-            language="python",
-            docker_image=None,
-            timeout_seconds=60
+        from shinka.launch import LocalJobConfig
+        job_config = LocalJobConfig(
+            eval_program_path="evaluate.py"
         )
         
         db_config = DatabaseConfig(
