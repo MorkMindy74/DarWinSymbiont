@@ -1,0 +1,4 @@
+algorithm: context
+benchmark: toy
+budget_steps: 100
+seed: 42

@@ -1,0 +1,84 @@
+{
+  "agent_id": "84b3873e56a2",
+  "parent_id": null,
+  "timestamp": "2025-10-04T19:33:21.697395",
+  "git_commit": "c52badb4798efae1426039885f13335566026f67",
+  "branch": "main",
+  "dirty": false,
+  "env": {
+    "python": "3.11.13",
+    "os": "Linux",
+    "platform": "Linux-6.6.93+-aarch64-with-glibc2.36",
+    "machine": "aarch64",
+    "dependencies_lock": "8971cb07d52cece5"
+  },
+  "seeds": {
+    "global": 42,
+    "numpy": 42,
+    "torch": 42
+  },
+  "evo_config_path": "inline",
+  "evo_config_inline": {
+    "algorithm": "context",
+    "seed": 42,
+    "benchmark": "toy",
+    "budget_steps": 100
+  },
+  "hyperparams": {
+    "bandit": "context",
+    "prior_alpha": 2.0,
+    "prior_beta": 1.0,
+    "decay": 0.99,
+    "contexts": [
+      "early",
+      "mid",
+      "late",
+      "stuck"
+    ]
+  },
+  "benchmarks": {
+    "toy_benchmark": {
+      "final_best_fitness": 1.0,
+      "auc_fitness": 808.7882,
+      "time_to_first_improve": 0.0,
+      "llm_queries_total": 833.3333,
+      "llm_queries_while_stuck": 756.3333,
+      "variance_ratio_vs_baseline": 1.2280701754385965
+    },
+    "tsp_benchmark": {
+      "final_best_fitness": 0.6509,
+      "auc_fitness": 520.7529,
+      "time_to_first_improve": 5.0,
+      "llm_queries_total": 766.6667,
+      "llm_queries_while_stuck": 676.3333,
+      "variance_ratio_vs_baseline": 1.450980392156863
+    },
+    "synthetic_benchmark": {
+      "final_best_fitness": 1.0,
+      "auc_fitness": 979.8942,
+      "time_to_first_improve": 0.0,
+      "llm_queries_total": 1000.0,
+      "llm_queries_while_stuck": 916.3333,
+      "variance_ratio_vs_baseline": 1.0
+    }
+  },
+  "cost": {
+    "total_usd_est": 0.26,
+    "queries_total": 2600.0
+  },
+  "context_activity": {
+    "switch_count": 5,
+    "dwell_time": {
+      "early": 0.16333333333333333,
+      "mid": 0.0,
+      "late": 0.0,
+      "stuck": 0.8366666666666667
+    }
+  },
+  "dgm_compat": {
+    "repo_layout_ref": "ShinkaEvolve structure (shinka/core/runner.py, bench/context_bandit_bench.py, reports/context_bandit/)",
+    "prompts_used": [],
+    "swe_bench_commit": "c52badb4798efae1426039885f13335566026f67",
+    "polyglot_prepared": true
+  }
+}
