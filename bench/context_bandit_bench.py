@@ -674,6 +674,278 @@ class EvolutionSimulator:
         return step_result
 
 
+def save_results_to_csv(results: List[Dict[str, Any]], config: BenchmarkConfig):
+    """Save results to CSV file."""
+    if not results:
+        return
+    
+    # Prepare output directory
+    output_dir = Path(config.output_dir) / config.algorithm / config.benchmark
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / f"run_{config.seed}.csv"
+    
+    # CSV fieldnames
+    fieldnames = [
+        'run_id', 'algo', 'benchmark', 'seed', 'step', 'context',
+        'fitness', 'best_fitness', 'llm_queries', 'llm_queries_cum',
+        'time_ms', 'gen_progress', 'no_improve_steps', 'fitness_slope',
+        'pop_diversity', 'model_used', 'improvement'
+    ]
+    
+    # Add DGM-specific fields if present
+    if results and any(key.startswith('dgm_') for key in results[0].keys()):
+        fieldnames.extend(['dgm_iteration', 'dgm_type', 'dgm_live', 'dgm_success'])
+    
+    # Write CSV
+    with open(output_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in results:
+            writer.writerow(result)
+    
+    logger.info(f"Results saved to {output_file}")
+
+
+def run_benchmark(config: BenchmarkConfig) -> List[Dict[str, Any]]:
+    """Run a single benchmark with specified configuration."""
+    
+    logger.info(f"Running {config.algorithm} on {config.benchmark} (seed={config.seed})")
+    
+    # Handle DGM benchmarks specially
+    if config.benchmark in ['dgm_swe', 'dgm_polyglot']:
+        return run_dgm_benchmark(config)
+    
+    results = []
+    
+    # Create scorer
+    scorer = MockLLMScorer(config.benchmark, config.seed)
+    
+    # Create evolution simulator
+    simulator = EvolutionSimulator(config, scorer)
+    
+    # Run simulation
+    for step in range(config.budget_steps):
+        simulator.step(step)
+        
+        # Log step results
+        step_result = {
+            'run_id': simulator.run_id,
+            'algo': config.algorithm,
+            'benchmark': config.benchmark,
+            'seed': config.seed,
+            'step': step,
+            'context': getattr(simulator.bandit, 'current_context', 'none'),
+            'fitness': simulator.current_fitness,
+            'best_fitness': simulator.current_best_fitness,
+            'llm_queries': 1,  # Each step = 1 query
+            'llm_queries_cum': simulator.llm_queries_total,
+            'time_ms': 40,  # Simulated time
+            'gen_progress': step / config.budget_steps,
+            'no_improve_steps': simulator.no_improve_steps,
+            'fitness_slope': simulator.fitness_slope,
+            'pop_diversity': 0.8,  # Simulated diversity
+            'model_used': simulator.last_selected_model,
+            'improvement': simulator.current_fitness > simulator.previous_fitness
+        }
+        
+        results.append(step_result)
+    
+    # Save results to CSV
+    save_results_to_csv(results, config)
+    
+    # Calculate final metrics
+    final_metrics = {
+        'run_id': results[0]['run_id'],
+        'algorithm': config.algorithm,
+        'benchmark': config.benchmark,
+        'seed': config.seed,
+        'final_best_fitness': simulator.current_best_fitness,
+        'llm_queries_total': simulator.llm_queries_total,
+        'llm_queries_while_stuck': simulator.llm_queries_while_stuck,
+        'time_to_first_improve': simulator.time_to_first_improve,
+        'no_improve_final': simulator.no_improve_steps,
+        'area_under_fitness_curve': np.trapezoid(simulator.best_fitness_history),
+    }
+    
+    # Add deduplication metrics if enabled
+    if simulator.dedup_manager is not None:
+        dedup_stats = simulator.dedup_manager.get_stats()
+        final_metrics.update({
+            'dedup_filtered_count': dedup_stats['filtered_count'],
+            'dedup_total_count': dedup_stats['total_count'],
+            'dedup_filter_rate_pct': dedup_stats['filter_rate_pct'],
+            'dedup_method': dedup_stats['method'],
+            'dedup_threshold': dedup_stats['threshold']
+        })
+    
+    logger.info(f"Completed {config.algorithm} on {config.benchmark}: "
+                f"fitness={simulator.current_best_fitness:.4f}")
+    
+    return results
+
+
+def run_dgm_benchmark(config: BenchmarkConfig) -> List[Dict[str, Any]]:
+    """Run DGM-specific benchmark using adapter."""
+    logger.info(f"Running DGM benchmark: {config.benchmark}")
+    
+    run_id = f"{config.algorithm}_{config.benchmark}_{config.seed}_{int(time.time())}"
+    
+    # If DGM is available and not mock mode, use real DGM
+    if DGM_AVAILABLE and config.model != "mock":
+        try:
+            # Configure DGM runner
+            benchmark_type = config.benchmark.replace("dgm_", "")  # "swe" or "polyglot"
+            
+            dgm_config = DGMConfig(
+                benchmark_type=benchmark_type,
+                seed=config.seed,
+                budget_steps=min(config.budget_steps, 50),  # Limit DGM steps
+                model=config.model,
+                timeout_seconds=1800  # 30 minutes
+            )
+            
+            runner = DGMRunner(dgm_config)
+            dgm_result = runner.run_dgm_eval()
+            
+            # Convert DGM result to our CSV format
+            return convert_dgm_to_csv_format(dgm_result, config, run_id)
+            
+        except Exception as e:
+            logger.error(f"DGM execution failed, falling back to mock: {e}")
+    
+    # Fallback to mock DGM simulation
+    logger.info("Using mock DGM simulation")
+    return run_mock_dgm_benchmark(config, run_id)
+
+
+def run_mock_dgm_benchmark(config: BenchmarkConfig, run_id: str) -> List[Dict[str, Any]]:
+    """Run mock DGM benchmark for testing."""
+    
+    # Create mock DGM scorer
+    scorer = MockLLMScorer(config.benchmark, config.seed)
+    
+    # Simulate DGM-style evolution (fewer, higher-impact steps)
+    results = []
+    current_fitness = 0.1
+    best_fitness = current_fitness
+    no_improve_steps = 0
+    
+    # DGM typically has fewer iterations but bigger improvements
+    dgm_steps = min(config.budget_steps // 5, 20)  # DGM uses fewer steps
+    
+    for step in range(dgm_steps):
+        # DGM context info
+        context_info = {
+            'gen_progress': step / dgm_steps,
+            'no_improve_steps': no_improve_steps,
+            'current_best': best_fitness
+        }
+        
+        # Get fitness from DGM scorer
+        fitness = scorer.score_solution(np.random.RandomState(config.seed + step).randn(5), context_info)
+        
+        # Update best fitness
+        if fitness > best_fitness:
+            best_fitness = fitness
+            no_improve_steps = 0
+        else:
+            no_improve_steps += 1
+        
+        current_fitness = fitness
+        
+        # Log DGM step result
+        step_result = {
+            'run_id': run_id,
+            'algo': config.algorithm,
+            'benchmark': config.benchmark,
+            'seed': config.seed,
+            'step': step,
+            'context': 'dgm_evolution',
+            'fitness': current_fitness,
+            'best_fitness': best_fitness,
+            'llm_queries': 1,
+            'llm_queries_cum': step + 1,
+            'time_ms': 2000,  # DGM steps take longer
+            'gen_progress': step / dgm_steps,
+            'no_improve_steps': no_improve_steps,
+            'fitness_slope': (fitness - (results[-1]['fitness'] if results else 0.1)) if results else 0,
+            'pop_diversity': 0.9,  # DGM maintains high diversity
+            'model_used': config.model,
+            'improvement': fitness > (results[-1]['fitness'] if results else 0.1),
+            'dgm_iteration': step,
+            'dgm_type': config.benchmark
+        }
+        
+        results.append(step_result)
+        
+        # Early termination if very successful
+        if best_fitness > 0.9:
+            logger.info(f"DGM mock reached high fitness {best_fitness:.3f}, terminating early")
+            break
+    
+    # Save results
+    save_results_to_csv(results, config)
+    
+    logger.info(f"Completed mock DGM {config.benchmark}: fitness={best_fitness:.4f}")
+    
+    return results
+
+
+def convert_dgm_to_csv_format(dgm_result: Dict[str, Any], config: BenchmarkConfig, run_id: str) -> List[Dict[str, Any]]:
+    """Convert DGM result to our CSV format."""
+    results = []
+    
+    # Extract basic metrics
+    final_fitness = dgm_result.get('final_best_fitness', 0.0)
+    total_queries = dgm_result.get('llm_queries_total', 0)
+    execution_time = dgm_result.get('execution_time_seconds', 0)
+    
+    # Create simplified step results (DGM doesn't provide step-by-step data)
+    estimated_steps = min(total_queries, config.budget_steps)
+    
+    for step in range(estimated_steps):
+        # Estimate intermediate fitness (linear progress assumption)
+        progress = (step + 1) / estimated_steps
+        estimated_fitness = final_fitness * progress
+        
+        step_result = {
+            'run_id': run_id,
+            'algo': config.algorithm,
+            'benchmark': config.benchmark,
+            'seed': config.seed,
+            'step': step,
+            'context': 'dgm_live',
+            'fitness': estimated_fitness,
+            'best_fitness': estimated_fitness,
+            'llm_queries': 1,
+            'llm_queries_cum': step + 1,
+            'time_ms': (execution_time * 1000) / estimated_steps,
+            'gen_progress': progress,
+            'no_improve_steps': 0,  # DGM data doesn't provide this
+            'fitness_slope': (estimated_fitness - (results[-1]['fitness'] if results else 0)) if results else 0,
+            'pop_diversity': 0.8,
+            'model_used': config.model,
+            'improvement': step == 0 or estimated_fitness > results[-1]['fitness'],
+            'dgm_live': True,
+            'dgm_success': dgm_result.get('success', False)
+        }
+        
+        results.append(step_result)
+    
+    # Save DGM artifacts
+    dgm_artifacts_dir = Path(f"reports/dgm/{config.benchmark}")
+    dgm_artifacts_dir.mkdir(parents=True, exist_ok=True)
+    
+    dgm_metadata_file = dgm_artifacts_dir / f"{run_id}_metadata.json"
+    with open(dgm_metadata_file, 'w') as f:
+        json.dump(dgm_result, f, indent=2, default=str)
+    
+    # Save results to CSV
+    save_results_to_csv(results, config)
+    
+    return results
+
+
 def run_single_benchmark(config: BenchmarkConfig) -> Dict[str, Any]:
     """Run a single benchmark configuration."""
     logger.info(f"Running {config.algorithm} on {config.benchmark} (seed={config.seed})")
