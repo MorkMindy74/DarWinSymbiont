@@ -863,37 +863,82 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
     auc_data = []
     time_data = []
     
-    # 1. Fitness vs Steps plot
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    # Collect data from all CSV files
+    for algo_dir in raw_dir.iterdir():
+        if not algo_dir.is_dir():
+            continue
+            
+        algorithm = algo_dir.name
+        
+        for bench_dir in algo_dir.iterdir():
+            if not bench_dir.is_dir():
+                continue
+                
+            benchmark = bench_dir.name
+            
+            for csv_file in bench_dir.glob("run_*.csv"):
+                df = pd.read_csv(csv_file)
+                seed = int(csv_file.stem.split("_")[1])
+                
+                # Store fitness curves data
+                plot_data.append({
+                    'algorithm': algorithm,
+                    'benchmark': benchmark,
+                    'seed': seed,
+                    'fitness_curve': df['best_fitness'].values,
+                    'steps': df['step'].values
+                })
+                
+                # Store AUC data
+                auc = np.trapezoid(df['best_fitness'].values)
+                auc_data.append({
+                    'algorithm': algorithm,
+                    'benchmark': benchmark,
+                    'seed': seed,
+                    'auc': auc
+                })
+                
+                # Store time to first improve data
+                improvement_steps = df[df['improvement'] == True]
+                time_to_improve = improvement_steps['step'].iloc[0] if len(improvement_steps) > 0 else len(df)
+                time_data.append({
+                    'algorithm': algorithm,
+                    'benchmark': benchmark,
+                    'seed': seed,
+                    'time_to_improve': time_to_improve
+                })
     
-    benchmarks = ['toy', 'tsp', 'synthetic']
+    # 1. Fitness vs Steps plot (enhanced with all algorithms)
+    algorithms = list(set([d['algorithm'] for d in plot_data]))
+    benchmarks = list(set([d['benchmark'] for d in plot_data]))
+    
+    fig, axes = plt.subplots(1, len(benchmarks), figsize=(6*len(benchmarks), 6))
+    if len(benchmarks) == 1:
+        axes = [axes]
     
     for i, benchmark in enumerate(benchmarks):
         ax = axes[i]
         
-        for algorithm in ['baseline', 'context']:
-            algo_dir = raw_dir / algorithm / benchmark
-            if not algo_dir.exists():
+        for algorithm in algorithms:
+            bench_algo_data = [d for d in plot_data if d['benchmark'] == benchmark and d['algorithm'] == algorithm]
+            
+            if not bench_algo_data:
                 continue
             
-            all_fitness = []
-            max_steps = 0
+            # Collect all fitness curves
+            all_fitness = [d['fitness_curve'] for d in bench_algo_data]
+            max_steps = max(len(curve) for curve in all_fitness)
             
-            for csv_file in algo_dir.glob("run_*.csv"):
-                df = pd.read_csv(csv_file)
-                all_fitness.append(df['best_fitness'].values)
-                max_steps = max(max_steps, len(df))
+            # Pad shorter runs to same length
+            padded_fitness = []
+            for fitness in all_fitness:
+                if len(fitness) < max_steps:
+                    padded = np.pad(fitness, (0, max_steps - len(fitness)), 'edge')
+                    padded_fitness.append(padded)
+                else:
+                    padded_fitness.append(fitness)
             
-            if all_fitness:
-                # Pad shorter runs
-                padded_fitness = []
-                for fitness in all_fitness:
-                    if len(fitness) < max_steps:
-                        padded = np.pad(fitness, (0, max_steps - len(fitness)), 'edge')
-                        padded_fitness.append(padded)
-                    else:
-                        padded_fitness.append(fitness)
-                
+            if padded_fitness:
                 fitness_array = np.array(padded_fitness)
                 mean_fitness = np.mean(fitness_array, axis=0)
                 std_fitness = np.std(fitness_array, axis=0)
@@ -901,7 +946,7 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
                 
                 label = algorithm.replace('_', ' ').title()
                 ax.plot(steps, mean_fitness, label=label, linewidth=2)
-                ax.fill_between(steps, mean_fitness - std_fitness, mean_fitness + std_fitness, alpha=0.3)
+                ax.fill_between(steps, mean_fitness - std_fitness, mean_fitness + std_fitness, alpha=0.2)
         
         ax.set_xlabel('Steps')
         ax.set_ylabel('Best Fitness')
@@ -912,6 +957,36 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
     plt.tight_layout()
     plt.savefig(plots_dir / 'fitness_curves.png', dpi=150, bbox_inches='tight')
     plt.close()
+    
+    # 2. AUC Bar Chart
+    if auc_data:
+        auc_df = pd.DataFrame(auc_data)
+        
+        plt.figure(figsize=(12, 8))
+        sns.barplot(data=auc_df, x='benchmark', y='auc', hue='algorithm', ci='sd', capsize=0.1)
+        plt.title('Area Under Curve (AUC) by Algorithm and Benchmark')
+        plt.ylabel('AUC (Best Fitness × Steps)')
+        plt.xlabel('Benchmark')
+        plt.legend(title='Algorithm', bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'auc_comparison.png', dpi=150, bbox_inches='tight')
+        plt.close()
+    
+    # 3. Time to First Improve Boxplot
+    if time_data:
+        time_df = pd.DataFrame(time_data)
+        
+        plt.figure(figsize=(12, 8))
+        sns.boxplot(data=time_df, x='benchmark', y='time_to_improve', hue='algorithm')
+        plt.title('Time to First Improvement Distribution')
+        plt.ylabel('Steps to First Improvement')
+        plt.xlabel('Benchmark')
+        plt.legend(title='Algorithm', bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'time_to_improve_boxplot.png', dpi=150, bbox_inches='tight')
+        plt.close()
     
     # 2. Stuck queries comparison
     results_df = []
