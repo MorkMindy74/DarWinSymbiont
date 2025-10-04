@@ -290,6 +290,21 @@ class EvolutionRunner:
             similarity_threshold=evo_config.code_embed_sim_threshold,
             max_novelty_attempts=evo_config.max_novelty_attempts,
         )
+        
+        # Initialize Agent Archive if enabled
+        if evo_config.archive_enabled:
+            archive_root = evo_config.archive_root
+            if archive_root is None:
+                archive_root = str(Path(self.results_dir) / "archive")
+            
+            self.archive = AgentArchive(archive_root)
+            self.archive_last_best_fitness = -float('inf')
+            
+            if verbose:
+                logger.info(f"Agent archive enabled: {archive_root}")
+                logger.info(f"Auto-save triggers: {evo_config.archive_save_on}")
+        else:
+            self.archive = None
 
         # Initialize rich console for formatted output
         self.console = Console()
