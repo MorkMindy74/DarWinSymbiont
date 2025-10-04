@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+"""
+ShinkaEvolve Agent Reproduction CLI
+
+Usage:
+- shinka_repro <agent_id> [--tolerance 1.0]
+"""
+
+import sys
+sys.path.insert(0, '/app')
+
+from cli.archive import main_repro
+
+if __name__ == '__main__':
+    sys.exit(main_repro())
