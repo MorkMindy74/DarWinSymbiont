@@ -533,6 +533,13 @@ class AgentArchive:
             "queries_total": sum(b.get("llm_queries_total", 0) for b in benchmarks.values())
         }
         
+        # Production-grade enrichment
+        complexity_metrics = self._calculate_complexity_metrics(config)
+        validation_levels = self._run_validation_levels()
+        cost_breakdown = self._calculate_cost_breakdown(benchmarks)
+        benchmarks_full = self._save_benchmarks_timeseries(agent_dir, benchmarks)
+        artifact_refs = self._collect_artifact_references(agent_dir)
+        
         # Create manifest
         manifest = AgentManifest(
             agent_id=agent_id,
