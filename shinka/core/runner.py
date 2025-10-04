@@ -1114,6 +1114,18 @@ class EvolutionRunner:
                 f"id {best_program.id[:6]}... "
                 f"Copied to {best_dir}"
             )
+        
+        # Auto-save to archive if enabled and configured for best fitness improvements
+        if (self.archive is not None and 
+            self.evo_config.archive_auto_save and 
+            "on_best_fitness" in self.evo_config.archive_save_on and
+            best_program.fitness > self.archive_last_best_fitness):
+            
+            try:
+                self._save_agent_to_archive(best_program, "on_best_fitness")
+                self.archive_last_best_fitness = best_program.fitness
+            except Exception as e:
+                logger.warning(f"Failed to auto-save agent to archive: {e}")
 
     def run_patch(
         self,
