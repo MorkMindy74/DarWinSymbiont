@@ -108,6 +108,7 @@ help:
 	@echo "  bench_ablation    - Feature ablation study"
 	@echo "  bench_hyperparam  - Hyperparameter sensitivity analysis"
 	@echo "  bench_cache       - Cache determinism test"
+	@echo "  bench_dedup       - Deduplication effectiveness test"
 	@echo "  bench_full_extended - Complete extended suite (15-20 min)"
 	@echo "  validate_all      - Full validation pipeline"
 	@echo "  clean_reports     - Clean benchmark reports"
