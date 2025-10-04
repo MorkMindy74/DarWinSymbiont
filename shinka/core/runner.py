@@ -164,6 +164,18 @@ class EvolutionRunner:
                 arm_names=evo_config.llm_models,
                 **evo_config.llm_dynamic_selection_kwargs,
             )
+        elif evo_config.llm_dynamic_selection.lower() == "thompson":
+            from .dynamic_sampling import ThompsonSamplingBandit
+            self.llm_selection = ThompsonSamplingBandit(
+                arm_names=evo_config.llm_models,
+                **evo_config.llm_dynamic_selection_kwargs,
+            )
+        elif evo_config.llm_dynamic_selection.lower() == "thompson_context":
+            from .dynamic_sampling import ContextAwareThompsonSamplingBandit
+            self.llm_selection = ContextAwareThompsonSamplingBandit(
+                arm_names=evo_config.llm_models,
+                **evo_config.llm_dynamic_selection_kwargs,
+            )
         else:
             raise ValueError("Invalid llm_dynamic_selection")
 
