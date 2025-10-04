@@ -600,3 +600,66 @@ index 1234567..abcdefg 100644
             # Should have original agent (no duplicates because same ID)
             final_agents = archive.list_agents()
             assert len(final_agents) == 1
+    
+    def test_enriched_manifest_fields_correctness(self):
+        """Test that enriched manifest fields contain correct and meaningful data."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive = AgentArchive(temp_dir)
+            
+            config = {
+                "algorithm": "context",
+                "seed": 42,
+                "benchmark": "tsp",
+                "budget_steps": 1000
+            }
+            
+            with patch('pathlib.Path.exists', return_value=False):
+                agent_id = archive.save_agent(config)
+            
+            manifest = archive.get_agent_manifest(agent_id)
+            
+            # Test complexity metrics correctness
+            complexity = manifest.complexity_metrics
+            assert isinstance(complexity["cyclomatic_complexity"], (int, float))
+            assert complexity["cyclomatic_complexity"] >= 1.0
+            assert isinstance(complexity["coupling_between_objects"], int)
+            assert complexity["coupling_between_objects"] >= 0
+            
+            # Test validation levels structure
+            validation = manifest.validation_levels
+            assert validation["static_checks"]["ruff"] in ["pass", "fail", "unknown"]
+            assert validation["unit_tests"]["status"] in ["pass", "fail", "unknown"]
+            assert isinstance(validation["unit_tests"]["passed"], int)
+            assert validation["unit_tests"]["passed"] >= 0
+            
+            # Test cost breakdown structure and values
+            cost_bd = manifest.cost_breakdown
+            total_cost = 0
+            total_queries = 0
+            
+            for model, data in cost_bd.items():
+                assert isinstance(data["queries"], (int, float))
+                assert isinstance(data["cost_usd"], (int, float))
+                assert data["queries"] >= 0
+                assert data["cost_usd"] >= 0
+                total_cost += data["cost_usd"]
+                total_queries += data["queries"]
+            
+            # Mock model should have all queries and zero cost
+            assert cost_bd["mock_model"]["cost_usd"] == 0.0
+            assert cost_bd["mock_model"]["queries"] > 0
+            
+            # Test artifact references
+            artifacts = manifest.artifact_refs
+            assert isinstance(artifacts, dict)
+            # Should have at least config snapshot
+            if "config_snapshot" in artifacts:
+                assert artifacts["config_snapshot"].endswith(".yaml")
+            
+            # Test benchmarks_full references  
+            benchmarks_full = manifest.benchmarks_full
+            assert isinstance(benchmarks_full, dict)
+            # May be empty if no timeseries data available
+            for ref_name, file_path in benchmarks_full.items():
+                assert isinstance(file_path, str)
+                assert "timeseries" in ref_name.lower() or "csv" in file_path.lower()
