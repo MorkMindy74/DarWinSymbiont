@@ -12,6 +12,9 @@ from .cache import (
     CachedLLMClient,
     CacheConfig,
 )
+from .darwin_adapter import (
+    CachedLLM,
+)
 
 __all__ = [
     "LLMClient",
