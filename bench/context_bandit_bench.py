@@ -1059,6 +1059,12 @@ def main():
                        help='prior_alpha,prior_beta,decay (comma-separated)')
     parser.add_argument('--cache', choices=['on', 'off'], default='off',
                        help='Enable/disable LLM caching for determinism test')
+    parser.add_argument('--dedup', choices=['on', 'off'], default='off',
+                       help='Enable/disable solution deduplication')
+    parser.add_argument('--dedup-method', choices=['minhash', 'simhash'], default='minhash',
+                       help='Deduplication method')
+    parser.add_argument('--dedup-threshold', type=float, default=0.8,
+                       help='Deduplication similarity threshold')
     parser.add_argument('--make-report', action='store_true', 
                        help='Generate analysis and plots')
     
