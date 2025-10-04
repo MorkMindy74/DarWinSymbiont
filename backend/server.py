@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import routes
-from routes import problem, analysis
+from backend.routes import problem, analysis
 
 
 # Global database client
