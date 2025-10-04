@@ -1055,6 +1055,8 @@ def main():
                        default='none', help='Feature ablation for context algorithm')
     parser.add_argument('--hyperparams', default='2.0,1.0,0.99', 
                        help='prior_alpha,prior_beta,decay (comma-separated)')
+    parser.add_argument('--cache', choices=['on', 'off'], default='off',
+                       help='Enable/disable LLM caching for determinism test')
     parser.add_argument('--make-report', action='store_true', 
                        help='Generate analysis and plots')
     
