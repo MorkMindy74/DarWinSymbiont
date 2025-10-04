@@ -30,7 +30,7 @@ async def create_problem(problem_input: ProblemInput, db: Optional[AsyncIOMotorD
     problem = ProblemCreate(problem_input=problem_input)
     
     # Save to database if db provided
-    if db:
+    if db is not None:
         problem_dict = problem.model_dump()
         await db.problems.insert_one(problem_dict)
     
