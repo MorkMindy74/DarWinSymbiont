@@ -672,6 +672,30 @@ class EvolutionRunner:
         if isinstance(self.llm_selection, ContextAwareThompsonSamplingBandit):
             self._update_bandit_context()
 
+    def _update_bandit_context(self):
+        """Update the context for context-aware Thompson sampling bandit."""
+        if not isinstance(self.llm_selection, ContextAwareThompsonSamplingBandit):
+            return
+            
+        # Get current database statistics for context
+        total_programs = len(self.db.get_all_programs())
+        best_program = self.db.get_best_program()
+        best_score = best_program.combined_score if best_program else 0.0
+        
+        # Create context vector with relevant evolution state
+        context = {
+            'completed_generations': self.completed_generations,
+            'total_programs': total_programs,
+            'best_score': best_score,
+            'target_generations': self.evo_config.num_generations,
+        }
+        
+        # Update the bandit's context
+        self.llm_selection.update_context(context)
+        
+        if self.verbose:
+            logger.debug(f"Updated bandit context: {context}")
+
     def _submit_new_job(self):
         """Submit a new job to the queue."""
         current_gen = self.next_generation_to_submit
