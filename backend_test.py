@@ -35,12 +35,22 @@ BACKEND_URL = "http://localhost:8001"
 # Test data - TSP (Traveling Salesman Problem)
 TSP_TEST_DATA = {
     "problem_type": "tsp",
-    "title": "Optimize delivery routes for 10 cities",
-    "description": "Find the shortest route to visit 10 cities and return to the starting point. Each city must be visited exactly once.",
+    "title": "Test TSP - Evolution Flow",
+    "description": "Find the shortest route to visit 10 cities. This is a test for the full evolution pipeline.",
     "constraints": {
         "num_locations": 10,
         "max_distance": 1000
     }
+}
+
+# Evolution configuration for testing
+EVOLUTION_CONFIG = {
+    "num_generations": 5,
+    "max_parallel_jobs": 1,
+    "llm_models": ["azure-gpt-4.1-mini"],
+    "num_islands": 2,
+    "archive_size": 50,
+    "migration_interval": 3
 }
 
 class EmergentAPITester:
