@@ -36,27 +36,53 @@ TSP_TEST_DATA = {
     }
 }
 
-def test_core_imports():
-    """Test 1: Core imports work correctly"""
-    logger.info("Testing core imports...")
+class EmergentAPITester:
+    """Test suite for EMERGENT Platform APIs"""
     
-    try:
-        # Test the main imports mentioned in the review request
-        from shinka.llm.dynamic_sampling import ThompsonSamplingBandit, ContextAwareThompsonSamplingBandit
-        logger.info("✅ Core imports successful")
+    def __init__(self, base_url: str):
+        self.base_url = base_url.rstrip('/')
+        self.session = None
+        self.created_problem_id = None
         
-        # Test additional imports that should be available
-        from shinka.llm.dynamic_sampling import AsymmetricUCB, FixedSampler, BanditBase
-        logger.info("✅ Additional bandit imports successful")
+    async def __aenter__(self):
+        """Async context manager entry"""
+        self.session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=60)  # 60 second timeout for LLM calls
+        )
+        return self
         
-        return True, "All core imports working correctly"
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit"""
+        if self.session:
+            await self.session.close()
+    
+    async def test_health_check(self) -> tuple[bool, str]:
+        """Test 1: Health check endpoint"""
+        logger.info("Testing health check endpoint...")
         
-    except ImportError as e:
-        logger.error(f"❌ Import failed: {e}")
-        return False, f"Import error: {e}"
-    except Exception as e:
-        logger.error(f"❌ Unexpected error during imports: {e}")
-        return False, f"Unexpected error: {e}"
+        try:
+            url = f"{self.base_url}/api/health"
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    return False, f"Health check failed with status {response.status}"
+                
+                data = await response.json()
+                
+                # Verify expected fields
+                required_fields = ["status", "database", "llm"]
+                for field in required_fields:
+                    if field not in data:
+                        return False, f"Missing field in health response: {field}"
+                
+                if data["status"] != "healthy":
+                    return False, f"Service not healthy: {data['status']}"
+                
+                logger.info(f"✅ Health check passed: {data}")
+                return True, f"Health check successful: {data}"
+                
+        except Exception as e:
+            logger.error(f"❌ Health check failed: {e}")
+            return False, f"Health check error: {e}"
 
 def test_thompson_sampling_basic():
     """Test 2: Basic Thompson Sampling functionality"""
