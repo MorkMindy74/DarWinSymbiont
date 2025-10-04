@@ -106,16 +106,28 @@ class MockLLMScorer:
             raise ValueError(f"Unknown problem type: {self.problem_type}")
     
     def _toy_function(self, solution: np.ndarray) -> float:
-        """Multi-modal toy function."""
+        """Hard multi-modal toy function with plateaux and controlled noise."""
         x, y = solution[0], solution[1]
         
-        # Multiple peaks with noise
-        peak1 = np.exp(-((x - 2)**2 + (y - 2)**2))
-        peak2 = 0.8 * np.exp(-((x + 1)**2 + (y - 1)**2))  
-        peak3 = 0.6 * np.exp(-((x - 1)**2 + (y + 2)**2))
+        # Multi-modal landscape with plateaux
+        fitness = 0.0
+        for peak in self.toy_peaks:
+            distance = np.linalg.norm(np.array([x, y]) - peak['center'])
+            # Create plateaux effect with tanh
+            contribution = peak['height'] * np.exp(-distance**2 / peak['width']**2)
+            # Add plateau effect
+            plateau_factor = 0.5 * (1 + np.tanh(2 - distance))
+            fitness += contribution * plateau_factor
         
-        noise = self.rng.normal(0, 0.05)
-        return np.clip(peak1 + peak2 + peak3 + noise, 0, 1)
+        # Controlled noise that increases when "stuck" 
+        base_noise = 0.08
+        noise_amplitude = base_noise * (1 + 0.5 * self.rng.random())
+        noise = self.rng.normal(0, noise_amplitude)
+        
+        # Deceptive valleys between peaks
+        deception = -0.2 * np.exp(-((x - 0.5)**2 + (y - 0.5)**2) / 0.3)
+        
+        return np.clip(fitness + noise + deception, 0, 1)
     
     def _tsp_function(self, solution: np.ndarray) -> float:
         """TSP-like function (tour length optimization)."""
