@@ -28,4 +28,5 @@ __all__ = [
     "LLMCache",
     "CachedLLMClient",
     "CacheConfig",
+    "CachedLLM",  # Darwin-style interface
 ]
