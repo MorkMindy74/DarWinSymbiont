@@ -147,6 +147,42 @@ Compared to existing bandit algorithms in ShinkaEvolve:
 - **Towards Prior**: Gradually forgets old information
 - **Automatic**: Applied after each update when auto_decay is set
 
+## Reward Mapping Methods
+
+The `reward_mapping` parameter controls how raw rewards are converted to success probabilities for Beta parameter updates:
+
+### 🎯 **Adaptive Mapping (Recommended)**
+```python
+bandit = ThompsonSamplingBandit(reward_mapping="adaptive")  # Default
+```
+- **Auto-adapts** to observed reward distribution
+- Uses percentile-based normalization (5th-95th percentile)
+- **Best for**: Unknown reward ranges, varying scales
+- **Performance**: Preserves full reward information
+
+### 📏 **Direct Mapping**  
+```python
+bandit = ThompsonSamplingBandit(reward_mapping="direct")
+```
+- **Linear mapping** assuming rewards in [0,1] range
+- **Best for**: Known reward distributions, maximum transparency
+- **Performance**: Perfect information preservation
+
+### ⚠️ **Sigmoid Mapping (Legacy)**
+```python
+bandit = ThompsonSamplingBandit(reward_mapping="sigmoid")  # Not recommended
+```
+- **Information compression**: Maps to narrow [0.39, 0.61] range
+- **Use only if**: Rewards have unbounded range and you want compression
+- **Performance**: Slower convergence due to information loss
+
+### 📊 **Performance Comparison**
+| Mapping | Information Preservation | Convergence Speed | Adaptability |
+|---------|-------------------------|------------------|--------------|
+| Adaptive | ✅ Excellent | ✅ Fast | ✅ Auto-adapts |
+| Direct | ✅ Perfect | ✅ Fast | ⚠️ Assumes [0,1] |
+| Sigmoid | ❌ Compressed | ⚠️ Slower | ❌ Fixed compression |
+
 ## When to Use ThompsonSamplingBandit
 
 **Recommended for:**
