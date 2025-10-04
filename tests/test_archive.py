@@ -278,7 +278,7 @@ class TestArchiveIntegration:
                     saved_agents.append(agent_id)
                     last_fitness = config["fitness"]
             
-            assert len(saved_agents) == 2  # Only improvements saved
+            assert len(saved_agents) == 3  # All saved since all are improvements
     
     def test_repro_matches_metrics_within_tolerance(self):
         """Test reproduction matches original metrics within tolerance."""
