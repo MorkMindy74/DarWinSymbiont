@@ -76,6 +76,11 @@ class EvolutionConfig:
     llm_cache_key_fields: List[str] = field(default_factory=lambda: [
         "prompt", "seed", "model", "tool_state"
     ])
+    # Agent Archive configuration
+    archive_enabled: bool = False
+    archive_auto_save: bool = True
+    archive_save_on: List[str] = field(default_factory=lambda: ["on_best_fitness", "on_finish"])
+    archive_root: Optional[str] = None  # Auto-generated if None
 
 
 @dataclass
