@@ -25,6 +25,7 @@ __all__ = [
     "BanditBase",
     "AsymmetricUCB",
     "ThompsonSamplingBandit",
+    "ContextAwareThompsonSamplingBandit",
     "FixedSampler",
     "LLMCache",
     "CachedLLMClient",
