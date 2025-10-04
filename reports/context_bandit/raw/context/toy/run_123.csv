@@ -1,0 +1,4 @@
+run_id,algo,benchmark,seed,step,context,fitness,best_fitness,llm_queries,llm_queries_cum,time_ms,gen_progress,no_improve_steps,fitness_slope,pop_diversity,model_used,improvement
+context_toy_123_1759609128,context,toy,123,0,early,0.0,0.0,1,1,40,0.0,1,0.0,0.8,fast_model,False
+context_toy_123_1759609128,context,toy,123,1,early,0.3463149586333658,0.3463149586333658,1,2,40,0.3333333333333333,0,0.0,0.8,balanced_model,True
+context_toy_123_1759609128,context,toy,123,2,early,0.160791099184271,0.3463149586333658,1,3,40,0.6666666666666666,1,0.17315747902808715,0.8,accurate_model,False
