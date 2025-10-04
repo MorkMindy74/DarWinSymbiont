@@ -1,0 +1,40 @@
+# ShinkaEvolve configuration with LLM caching enabled
+evo_config:
+  _target_: shinka.core.EvolutionConfig
+  
+  # Basic evolution parameters
+  patch_types:
+    - "diff"
+    - "full" 
+  patch_type_probs:
+    - 0.6
+    - 0.4
+  num_generations: 30
+  max_parallel_jobs: 2
+  max_patch_attempts: 8
+  
+  # LLM configuration
+  llm_models:
+    - "gpt-4.1"
+    - "claude-3"
+  llm_dynamic_selection: "ucb"  # Use bandit selection
+  
+  # Embedding and novelty
+  embedding_model: "text-embedding-3-small"
+  
+  # LLM Caching configuration
+  llm_cache_enabled: true
+  llm_cache_mode: "exact"  # Use exact matching for deterministic behavior
+  llm_cache_path: null  # Auto-generate path in results directory
+  llm_cache_ttl_hours: 168.0  # 7 days
+  llm_cache_key_fields:
+    - "prompt"
+    - "seed"
+    - "model"
+    - "tool_state"
+  
+  # Output configuration
+  results_dir: ${output_dir}
+
+# Example usage:
+# python -m shinka.run --config-name=cached_evolution
