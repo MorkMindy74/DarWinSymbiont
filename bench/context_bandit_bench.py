@@ -167,33 +167,69 @@ class MockLLMScorer:
         return np.clip(fitness + noise, 0, 1)
     
     def _synthetic_function(self, solution: np.ndarray, context_info: Dict) -> float:
-        """Synthetic function that depends on evolutionary context."""
-        # Base fitness from Rosenbrock-like function
+        """Hard synthetic function with constraints and repetition penalties."""
+        # Base fitness from multi-objective Rosenbrock + Rastrigin
         fitness = 0
-        for i in range(len(solution) - 1):
-            fitness += 100 * (solution[i+1] - solution[i]**2)**2 + (1 - solution[i])**2
+        n_dims = len(solution)
         
-        # Normalize
-        fitness = 1.0 / (1.0 + fitness / 1000)
+        # Rosenbrock component (smooth but narrow valley)
+        rosenbrock = 0
+        for i in range(n_dims - 1):
+            rosenbrock += 100 * (solution[i+1] - solution[i]**2)**2 + (1 - solution[i])**2
         
-        # Context-dependent modulation
+        # Rastrigin component (many local optima)
+        rastrigin = 10 * n_dims + sum(x**2 - 10 * np.cos(2 * np.pi * x) for x in solution)
+        
+        # Combine objectives
+        combined_penalty = rosenbrock / 1000 + rastrigin / 100
+        base_fitness = 1.0 / (1.0 + combined_penalty)
+        
+        # Repetition penalty (anti-cycling constraint)
+        repetition_penalty = 0.0
+        current_hash = hash(tuple(np.round(solution, 2)))
+        
+        # Store solution history
+        self.previous_solutions.append(current_hash)
+        if len(self.previous_solutions) > self.penalty_window:
+            self.previous_solutions.pop(0)
+        
+        # Count recent repetitions
+        recent_count = self.previous_solutions.count(current_hash)
+        if recent_count > 1:
+            repetition_penalty = 0.2 * (recent_count - 1)  # Escalating penalty
+        
+        # Context-dependent modulation (more aggressive)
+        context_modifier = 1.0
         if context_info:
             gen_progress = context_info.get('gen_progress', 0.5)
             no_improve = context_info.get('no_improve_steps', 0)
             
-            # Early phase: favor exploration (add randomness)
-            if gen_progress < 0.3:
-                fitness *= (0.8 + self.rng.uniform(0, 0.4))
+            # Early phase: exploration bonus but with noise
+            if gen_progress < 0.2:
+                context_modifier *= (0.7 + self.rng.uniform(0, 0.6))
             
-            # Stuck phase: make breakthroughs harder but possible
-            elif no_improve > 10:
-                if self.rng.random() < 0.1:  # 10% chance of breakthrough
-                    fitness *= 1.3
+            # Mid phase: stable evaluation
+            elif gen_progress < 0.6:
+                context_modifier *= (0.95 + self.rng.uniform(0, 0.1))
+            
+            # Late phase: precision matters
+            else:
+                context_modifier *= (0.98 + self.rng.uniform(0, 0.04))
+            
+            # Stuck phase: make it hard but allow breakthroughs
+            if no_improve > 15:
+                if self.rng.random() < 0.05:  # 5% chance of breakthrough
+                    context_modifier *= 1.5
                 else:
-                    fitness *= 0.7
+                    context_modifier *= 0.6
         
-        noise = self.rng.normal(0, 0.03)
-        return np.clip(fitness + noise, 0, 1)
+        # Controlled noise
+        noise_level = 0.05 + 0.03 * self.rng.random()
+        noise = self.rng.normal(0, noise_level)
+        
+        final_fitness = base_fitness * context_modifier - repetition_penalty
+        
+        return np.clip(final_fitness + noise, 0, 1)
 
 
 class EvolutionSimulator:
