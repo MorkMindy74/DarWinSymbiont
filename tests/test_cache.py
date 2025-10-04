@@ -498,8 +498,17 @@ class TestCacheIntegration(unittest.TestCase):
             return scores
         """
         
-        mock_result = Mock(spec=QueryResult)
-        mock_result.content = "Use list comprehension for better performance"
+        mock_result = QueryResult(
+            content="Use list comprehension for better performance",
+            msg=original_query,
+            system_msg="You are a performance optimization expert",
+            new_msg_history=[],
+            model_name="gpt-4",
+            kwargs={},
+            input_tokens=50,
+            output_tokens=25,
+            cost=0.08
+        )
         
         cache.put(
             original_query,
