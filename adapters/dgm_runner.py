@@ -179,16 +179,35 @@ class DGMRunner:
         if cmd_name not in self.config.allowed_tools:
             raise DGMSafetyError(f"Tool '{cmd_name}' not in allowlist: {self.config.allowed_tools}")
         
-        # Check for dangerous patterns
+        # Check for dangerous patterns (expanded list)
         dangerous_patterns = [
             "rm -rf", "sudo", "chmod +x", "curl", "wget", "git clone",
-            "pip install", "npm install", "exec", "eval", "> /dev/"
+            "pip install", "npm install", "exec", "eval", "> /dev/",
+            "dd if=", "mkfs", "fdisk", "mount", "umount", "systemctl",
+            "&& rm", "; rm", "$(", "`", "nc -l", "netcat", "telnet",
+            "ssh", "scp", "rsync", "ftp", "wget", "curl -X POST",
+            "> /etc/", "> ~/.ssh", "chmod 777", "chmod -R",
+            "kill -9", "killall", "pkill", "nohup", "/proc/",
+            "docker", "podman", "kubectl", "helm"
         ]
         
         cmd_str = " ".join(command).lower()
         for pattern in dangerous_patterns:
             if pattern in cmd_str:
                 raise DGMSafetyError(f"Dangerous pattern detected: '{pattern}' in command")
+        
+        # Additional argument validation
+        for arg in command[1:]:
+            # Check for suspicious file paths
+            suspicious_paths = [
+                "/etc/passwd", "/etc/shadow", "/root/", "/home/",
+                "~/.ssh/", "~/.aws/", "/var/log/", "/sys/",
+                "/proc/", "/dev/", "/boot/"
+            ]
+            
+            for path in suspicious_paths:
+                if path in arg.lower():
+                    raise DGMSafetyError(f"Suspicious file path detected: '{path}' in argument '{arg}'")
     
     def _create_dgm_config(self, run_id: str) -> Dict[str, Any]:
         """Create DGM-specific configuration."""
