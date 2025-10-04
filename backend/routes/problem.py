@@ -4,7 +4,11 @@ Problem routes
 from fastapi import APIRouter, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import List
-from backend.models.problem import ProblemInput, ProblemCreate, ProblemWithAnalysis
+
+try:
+    from ..models.problem import ProblemInput, ProblemCreate, ProblemWithAnalysis
+except ImportError:
+    from backend.models.problem import ProblemInput, ProblemCreate, ProblemWithAnalysis
 
 router = APIRouter(prefix="/api/problem", tags=["problem"])
 
