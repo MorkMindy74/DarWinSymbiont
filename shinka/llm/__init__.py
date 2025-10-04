@@ -4,6 +4,7 @@ from .models import QueryResult
 from .dynamic_sampling import (
     BanditBase,
     AsymmetricUCB,
+    ThompsonSamplingBandit,
     FixedSampler,
 )
 
