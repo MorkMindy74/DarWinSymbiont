@@ -320,6 +320,20 @@ class EvolutionSimulator:
         self.time_to_first_improve = None
         self.context_history = []
         
+        # Deduplication system
+        self.dedup_manager = None
+        if config.dedup == "on":
+            self.dedup_manager = create_dedup_manager(
+                method=config.dedup_method,
+                threshold=config.dedup_threshold,
+                hash_size=64,
+                window_size=50,
+                enabled=True,
+                seed=config.seed
+            )
+            logger.info(f"Deduplication enabled: {config.dedup_method} "
+                       f"(threshold={config.dedup_threshold})")
+        
         # Parse hyperparameters
         hyperparam_parts = config.hyperparams.split(',')
         prior_alpha = float(hyperparam_parts[0]) if len(hyperparam_parts) > 0 else 2.0
