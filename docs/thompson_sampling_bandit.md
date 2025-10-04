@@ -131,7 +131,10 @@ Compared to existing bandit algorithms in ShinkaEvolve:
 
 ### Reward Processing
 1. **Baseline Shifting**: Same logic as existing bandits for compatibility
-2. **Sigmoid Mapping**: Converts rewards to success probabilities via sigmoid function
+2. **Smart Mapping**: Three options for converting rewards to success probabilities:
+   - **Adaptive** (default): Automatically adapts to observed reward distribution
+   - **Direct**: Linear mapping assuming rewards in [0,1] range
+   - **Sigmoid**: Legacy mapping (not recommended for most cases)
 3. **Beta Updates**: Increments α by success_prob, β by (1 - success_prob)
 
 ### Sampling Strategy
