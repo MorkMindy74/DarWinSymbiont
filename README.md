@@ -25,7 +25,8 @@ The framework supports **parallel evaluation of candidates** locally or on a Slu
 | 🚀 **[Getting Started](docs/getting_started.md)** | Installation, basic usage, and examples | Setup, first evolution run, core concepts |
 | 📓 **[Tutorial Notebook](examples/shinka_tutorial.ipynb)** | Interactive walkthrough of Shinka features | Hands-on examples, configuration, best practices |
 | ⚙️ **[Configuration](docs/configuration.md)** | Comprehensive configuration reference | All config options, optimization settings, advanced features |
-| 🎨 **[WebUI](docs/webui.md)** | Interactive visualization and monitoring | Real-time tracking, result analysis, debugging tools | 
+| 🎨 **[WebUI](docs/webui.md)** | Interactive visualization and monitoring | Real-time tracking, result analysis, debugging tools |
+| 🗄️ **[Agent Archive](docs/agent_archive.md)** | Reproducible agent archiving system | Export/import agents, reproduction, DGM compatibility | 
 
 ## Installation & Quick Start 🚀
 
