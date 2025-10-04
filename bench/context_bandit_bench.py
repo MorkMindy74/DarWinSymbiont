@@ -633,6 +633,17 @@ def run_single_benchmark(config: BenchmarkConfig) -> Dict[str, Any]:
         'area_under_fitness_curve': np.trapezoid(simulator.best_fitness_history),
     }
     
+    # Add deduplication metrics if enabled
+    if simulator.dedup_manager is not None:
+        dedup_stats = simulator.dedup_manager.get_stats()
+        final_metrics.update({
+            'dedup_filtered_count': dedup_stats['filtered_count'],
+            'dedup_total_count': dedup_stats['total_count'],
+            'dedup_filter_rate_pct': dedup_stats['filter_rate_pct'],
+            'dedup_method': dedup_stats['method'],
+            'dedup_threshold': dedup_stats['threshold']
+        })
+    
     # Context-specific metrics for context-aware algorithm
     if hasattr(simulator.bandit, 'get_context_stats'):
         context_stats = simulator.bandit.get_context_stats()
