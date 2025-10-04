@@ -4,13 +4,8 @@ Analysis routes
 from fastapi import APIRouter, HTTPException, status, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Optional
-
-try:
-    from ..models.problem import ProblemAnalysis, ProblemInput
-    from ..services.analysis_service import AnalysisService
-except ImportError:
-    from backend.models.problem import ProblemAnalysis, ProblemInput
-    from backend.services.analysis_service import AnalysisService
+from models.problem import ProblemAnalysis, ProblemInput
+from services.analysis_service import AnalysisService
 
 router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
