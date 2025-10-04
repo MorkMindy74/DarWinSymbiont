@@ -2,11 +2,15 @@
 """
 Backend Test Suite for EMERGENT AI-Powered Optimization Platform
 
-Tests the Phase 1-2 backend APIs:
+Tests the Phase 1-4 backend APIs:
 1. Health check endpoint: GET /api/health
 2. Problem creation: POST /api/problem/create
 3. Problem analysis with LLM: POST /api/analysis/analyze/{problem_id}
 4. Get problem with analysis: GET /api/problem/{problem_id}
+5. Evolution configuration: POST /api/evolution/configure/{problem_id}
+6. Evolution status: GET /api/evolution/status/{session_id}
+7. Evolution start: POST /api/evolution/start/{session_id}
+8. File verification: initial.py, evaluate.py, evolution.db
 """
 
 import sys
@@ -15,8 +19,11 @@ import json
 import asyncio
 import aiohttp
 import logging
+import sqlite3
+import time
 from typing import Dict, Any, Optional
 from datetime import datetime
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
