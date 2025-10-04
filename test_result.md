@@ -28,6 +28,30 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Problem analysis API working correctly. Fixed database boolean check issues. LLM integration with Emergent Universal Key successful - takes ~10 seconds and returns structured TSP analysis with problem characterization, 3 key challenges, 4 parameter suggestions, constraints analysis, solution strategy, and recommended evolution config. Analysis is TSP-specific and realistic."
+        
+  - task: "ShinkaEvolve Integration - Evolution Bridge"
+    implemented: true
+    working: "pending"
+    file: "backend/services/shinka_bridge.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "pending"
+        agent: "main"
+        comment: "Bridge to DarWin Symbiont. Problem-specific code generation (initial.py, evaluate.py) for TSP and Scheduling. Database monitoring. Needs testing with real evolution."
+        
+  - task: "WebSocket Real-time Updates"
+    implemented: true
+    working: "pending"
+    file: "backend/routes/evolution.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "pending"
+        agent: "main"
+        comment: "WebSocket endpoint /api/evolution/ws/{session_id}. Broadcasting: generation_complete, islands_update, evolution_complete, error. Needs E2E testing."
 
   - task: "EMERGENT Platform API - Health Check"
     implemented: true
