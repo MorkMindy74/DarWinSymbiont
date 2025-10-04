@@ -422,28 +422,40 @@ class EvolutionSimulator:
             raise ValueError(f"Unknown algorithm: {config.algorithm}")
     
     def simulate_llm_query(self, model_name: str) -> Tuple[np.ndarray, float]:
-        """Simulate LLM generating a solution candidate."""
-        self.llm_queries_total += 1
+        """Simulate LLM generating a solution candidate with deduplication."""
+        # Generate candidate solution
+        max_attempts = 10  # Maximum attempts to find non-duplicate
         
-        # Context-dependent solution generation
-        if model_name == "fast_model":
-            # Quick exploration, more random
-            solution = self.rng.uniform(-3, 3, 5)
-            if self.current_step < 10:  # Early boost
-                solution += self.rng.uniform(-1, 1, 5)
-        elif model_name == "accurate_model":
-            # Precise, slower, better for stuck situations
-            if self.no_improve_steps > 10:  # Stuck boost
-                solution = self.rng.uniform(-2, 2, 5)
-            else:
+        for attempt in range(max_attempts):
+            self.llm_queries_total += 1
+            
+            # Context-dependent solution generation
+            if model_name == "fast_model":
+                # Quick exploration, more random
+                solution = self.rng.uniform(-3, 3, 5)
+                if self.current_step < 10:  # Early boost
+                    solution += self.rng.uniform(-1, 1, 5)
+            elif model_name == "accurate_model":
+                # Precise, slower, better for stuck situations
+                if self.no_improve_steps > 10:  # Stuck boost
+                    solution = self.rng.uniform(-2, 2, 5)
+                else:
+                    solution = self.rng.uniform(-2.5, 2.5, 5)
+            else:  # balanced_model
                 solution = self.rng.uniform(-2.5, 2.5, 5)
-        else:  # balanced_model
-            solution = self.rng.uniform(-2.5, 2.5, 5)
-        
-        # Add model-specific noise
-        noise_levels = {"fast_model": 0.3, "accurate_model": 0.1, "balanced_model": 0.2}
-        noise = self.rng.normal(0, noise_levels[model_name], len(solution))
-        solution += noise
+            
+            # Add model-specific noise (more noise if retrying)
+            noise_levels = {"fast_model": 0.3, "accurate_model": 0.1, "balanced_model": 0.2}
+            base_noise = noise_levels[model_name]
+            retry_noise = base_noise * (1 + attempt * 0.2)  # Increase noise on retries
+            noise = self.rng.normal(0, retry_noise, len(solution))
+            solution += noise
+            
+            # Check for duplication
+            if self.dedup_manager is None or not self.dedup_manager.is_duplicate(solution):
+                break  # Found non-duplicate solution
+            
+            logger.debug(f"Duplicate solution detected, retrying ({attempt + 1}/{max_attempts})")
         
         # Score the solution
         context_info = {
