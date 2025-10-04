@@ -7,6 +7,11 @@ from .dynamic_sampling import (
     ThompsonSamplingBandit,
     FixedSampler,
 )
+from .cache import (
+    LLMCache,
+    CachedLLMClient,
+    CacheConfig,
+)
 
 __all__ = [
     "LLMClient",
