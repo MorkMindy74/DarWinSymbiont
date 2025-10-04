@@ -68,7 +68,14 @@ class AgentManifest:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'AgentManifest':
-        """Create manifest from dictionary."""
+        """Create manifest from dictionary with backward compatibility."""
+        # Provide defaults for new fields if missing (backward compatibility)
+        data.setdefault('benchmarks_full', {})
+        data.setdefault('complexity_metrics', {})
+        data.setdefault('validation_levels', {})
+        data.setdefault('cost_breakdown', {})
+        data.setdefault('artifact_refs', {})
+        
         return cls(**data)
 
 
