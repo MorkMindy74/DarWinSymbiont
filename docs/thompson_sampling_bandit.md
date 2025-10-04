@@ -108,6 +108,7 @@ config = EvolutionConfig(
 | `seed` | int | None | Random seed for reproducibility |
 | `prior_alpha` | float | 1.0 | Prior success count (optimism level) |
 | `prior_beta` | float | 1.0 | Prior failure count |
+| `reward_mapping` | str | "adaptive" | Reward mapping method: "adaptive", "direct", "sigmoid" |
 | `reward_scaling` | float | 1.0 | Scaling factor for reward sensitivity |
 | `auto_decay` | float | 0.99 | Automatic decay factor for non-stationarity |
 | `shift_by_baseline` | bool | True | Whether to shift rewards by baseline |
