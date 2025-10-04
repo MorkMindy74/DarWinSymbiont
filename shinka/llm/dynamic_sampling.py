@@ -600,10 +600,17 @@ class ThompsonSamplingBandit(BanditBase):
             raise ValueError("prior_alpha and prior_beta must be > 0")
         if reward_scaling <= 0:
             raise ValueError("reward_scaling must be > 0")
+        if reward_mapping not in ["adaptive", "direct", "sigmoid"]:
+            raise ValueError("reward_mapping must be 'adaptive', 'direct', or 'sigmoid'")
             
         self.prior_alpha = float(prior_alpha)
         self.prior_beta = float(prior_beta)
+        self.reward_mapping = reward_mapping
         self.reward_scaling = float(reward_scaling)
+        
+        # For adaptive mapping
+        self.reward_history = []
+        self.baseline_history = []
         
         # Initialize Beta parameters for each arm
         n = self.n_arms
