@@ -149,11 +149,14 @@ toy_benchmark: ✅ PASS
 archive/
 ├── agents/
 │   ├── 20251004_193321_84b3873e56a2/
-│   │   ├── manifest.json           # Complete metadata
-│   │   ├── diff.patch             # Git changes (if any)
+│   │   ├── manifest.json           # Complete metadata (enriched)
+│   │   ├── diff.patch             # Git changes (if dirty repo)
 │   │   ├── artifacts/             # Reports and outputs
 │   │   │   ├── config_used.yaml   # Configuration snapshot  
-│   │   │   └── benchmark_reports/ # Benchmark results
+│   │   │   └── benchmark_reports/ # Benchmark results & plots
+│   │   ├── timeseries/            # Full time series data (CSV)
+│   │   │   ├── context_toy_timeseries.csv
+│   │   │   └── baseline_tsp_timeseries.csv
 │   │   └── source_snapshot/       # Source files (optional)
 │   └── 20251004_184512_a1b2c3d4e5f6/
 └── latest_symlink -> agents/20251004_193321_84b3873e56a2/
