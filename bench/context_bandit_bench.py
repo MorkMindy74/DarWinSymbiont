@@ -679,6 +679,75 @@ class EvolutionSimulator:
         self.current_step += 1
         
         return step_result
+    
+    def step(self, step_num: int):
+        """Execute one evolution step (simplified version for run_benchmark)."""
+        # Update context for context-aware bandit
+        current_context = None
+        if hasattr(self.bandit, 'update_context'):
+            current_context = self.bandit.update_context(
+                generation=step_num,
+                total_generations=self.config.budget_steps,
+                no_improve_steps=self.no_improve_steps,
+                best_fitness_history=self.best_fitness_history,
+                population_diversity=self.calculate_population_diversity()
+            )
+        
+        # Select model using bandit
+        probs = self.bandit.posterior()
+        selected_model_idx = np.argmax(probs)
+        selected_model = ["fast_model", "accurate_model", "balanced_model"][selected_model_idx]
+        self.last_selected_model = selected_model
+        
+        # Generate solution candidate
+        solution, fitness = self.simulate_llm_query(selected_model)
+        
+        # Update fitness tracking
+        self.previous_fitness = self.current_fitness
+        self.current_fitness = fitness
+        self.fitness_history.append(fitness)
+        
+        # Update best fitness
+        improvement = False
+        if fitness > self.current_best_fitness:
+            self.current_best_fitness = fitness
+            self.no_improve_steps = 0
+            improvement = True
+            
+            # Track time to first improvement
+            if self.time_to_first_improve is None and fitness > 0.1:
+                self.time_to_first_improve = step_num
+        else:
+            self.no_improve_steps += 1
+        
+        self.best_fitness_history.append(self.current_best_fitness)
+        
+        # Track stuck phase queries
+        if self.detect_stuck_phase():
+            self.llm_queries_while_stuck += 1
+        
+        # Update population diversity
+        pop_diversity = self.calculate_population_diversity()
+        self.population_diversity_history.append(pop_diversity)
+        
+        # Calculate fitness slope
+        if len(self.best_fitness_history) >= 3:
+            recent = self.best_fitness_history[-min(10, len(self.best_fitness_history)):]
+            x = np.arange(len(recent))
+            y = np.array(recent)
+            if len(recent) >= 2:
+                slope = (len(recent) * np.sum(x * y) - np.sum(x) * np.sum(y)) / \
+                       (len(recent) * np.sum(x**2) - np.sum(x)**2 + 1e-8)
+                self.fitness_slope = slope
+        
+        # Update bandit
+        baseline = 0.5
+        self.bandit.update_submitted(selected_model)
+        self.bandit.update(selected_model, fitness, baseline)
+        
+        # Store context
+        if hasattr(self.bandit, 'current_context'):
+            self.bandit.current_context = current_context
 
 
 def save_results_to_csv(results: List[Dict[str, Any]], config: BenchmarkConfig):
