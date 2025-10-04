@@ -1,6 +1,7 @@
 {
   "name": "emergent-frontend",
   "version": "1.0.0",
+  "type": "module",
   "description": "EMERGENT: AI-Powered Optimization Platform Frontend",
   "scripts": {
     "dev": "vite",
