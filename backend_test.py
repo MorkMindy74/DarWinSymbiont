@@ -1,29 +1,40 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for ShinkaEvolve Project
+Backend Test Suite for EMERGENT AI-Powered Optimization Platform
 
-Tests the core functionality as requested:
-1. Core imports work correctly
-2. Basic Thompson Sampling functionality
-3. Context-Aware functionality
-4. Benchmark harness integration
-5. Complete minimal benchmark run
+Tests the Phase 1-2 backend APIs:
+1. Health check endpoint: GET /api/health
+2. Problem creation: POST /api/problem/create
+3. Problem analysis with LLM: POST /api/analysis/analyze/{problem_id}
+4. Get problem with analysis: GET /api/problem/{problem_id}
 """
 
 import sys
 import os
-import tempfile
-import csv
-import numpy as np
-from pathlib import Path
+import json
+import asyncio
+import aiohttp
 import logging
-
-# Add shinka to path
-sys.path.insert(0, '/app')
+from typing import Dict, Any, Optional
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Backend URL from frontend .env
+BACKEND_URL = "https://bf7227fc-ba83-4dd5-b96c-522be2796f63.preview.emergentagent.com"
+
+# Test data - TSP (Traveling Salesman Problem)
+TSP_TEST_DATA = {
+    "problem_type": "tsp",
+    "title": "Optimize delivery routes for 10 cities",
+    "description": "Find the shortest route to visit 10 cities and return to the starting point. Each city must be visited exactly once.",
+    "constraints": {
+        "num_locations": 10,
+        "max_distance": 1000
+    }
+}
 
 def test_core_imports():
     """Test 1: Core imports work correctly"""
