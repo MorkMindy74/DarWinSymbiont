@@ -627,6 +627,87 @@ class ThompsonSamplingBandit(BanditBase):
         """Sigmoid function to map rewards to [0,1] range."""
         return 1.0 / (1.0 + np.exp(-x * self.reward_scaling))
     
+    def _adaptive_mapping(self, reward_diff: float, baseline: float) -> float:
+        """
+        Adaptive reward mapping based on observed reward distribution.
+        
+        This approach automatically adapts to the reward range and avoids
+        the information compression problem of sigmoid mapping.
+        """
+        # Store history for adaptation
+        if len(self.reward_history) >= 1000:  # Keep last 1000
+            self.reward_history = self.reward_history[-500:]
+            self.baseline_history = self.baseline_history[-500:]
+            
+        self.reward_history.append(reward_diff + baseline)  # Store original reward
+        self.baseline_history.append(baseline)
+        
+        # For first few samples, assume rewards in [0,1] with given baseline
+        if len(self.reward_history) < 20:
+            # Simple linear mapping assuming typical [0,1] reward range
+            prob = (reward_diff + 0.5)  # Assume baseline ~0.5, map [-0.5,0.5] to [0,1]
+            return np.clip(prob, 0.0, 1.0)
+        
+        # After enough samples, use percentile-based adaptive mapping
+        recent_rewards = np.array(self.reward_history[-100:])  # Last 100 rewards
+        
+        # Use robust percentiles (5th and 95th) to avoid outliers
+        r_min = np.percentile(recent_rewards, 5)
+        r_max = np.percentile(recent_rewards, 95)
+        
+        # If all rewards are similar, use neutral probability
+        if r_max - r_min < 1e-6:
+            return 0.5
+        
+        # Linear normalization to [0,1] based on observed range
+        original_reward = reward_diff + baseline
+        normalized = (original_reward - r_min) / (r_max - r_min)
+        
+        # Apply reward_scaling as "sharpening" factor
+        if self.reward_scaling != 1.0 and 0 < normalized < 1:
+            # Sharpen distribution around 0.5
+            if normalized > 0.5:
+                normalized = 0.5 + (normalized - 0.5) * self.reward_scaling
+            else:
+                normalized = 0.5 - (0.5 - normalized) * self.reward_scaling
+        
+        return np.clip(normalized, 0.0, 1.0)
+    
+    def _direct_mapping(self, reward_diff: float, baseline: float) -> float:
+        """
+        Direct linear mapping assuming rewards are in [0,1] range.
+        
+        This is the simplest and most transparent mapping for cases where
+        you know rewards are already in a reasonable range.
+        """
+        # Assume baseline is middle of reward range (e.g., 0.5 for [0,1])
+        # Map reward_diff from [-baseline, 1-baseline] to [0,1]
+        expected_min = -baseline
+        expected_max = 1.0 - baseline
+        
+        if expected_max - expected_min < 1e-6:
+            return 0.5
+            
+        prob = (reward_diff - expected_min) / (expected_max - expected_min)
+        
+        # Apply reward_scaling
+        if self.reward_scaling != 1.0 and 0 < prob < 1:
+            prob = prob ** (1.0 / self.reward_scaling)
+            
+        return np.clip(prob, 0.0, 1.0)
+    
+    def _reward_to_success_probability(self, reward_diff: float, baseline: float) -> float:
+        """Convert reward difference to success probability using selected mapping."""
+        
+        if self.reward_mapping == "adaptive":
+            return self._adaptive_mapping(reward_diff, baseline)
+        elif self.reward_mapping == "direct": 
+            return self._direct_mapping(reward_diff, baseline)
+        elif self.reward_mapping == "sigmoid":
+            return self._sigmoid(reward_diff)
+        else:
+            raise ValueError(f"Unknown reward_mapping: {self.reward_mapping}")
+    
     def update_submitted(self, arm: Arm) -> float:
         arm_idx = self._resolve_arm(arm)
         self.n_submitted[arm_idx] += 1.0
