@@ -558,6 +558,249 @@ class AsymmetricUCB(BanditBase):
         console.print(table)
 
 
+class ThompsonSamplingBandit(BanditBase):
+    """
+    Thompson Sampling bandit algorithm using Beta distributions.
+    
+    This algorithm maintains Beta(alpha_i, beta_i) distributions for each arm,
+    which are updated based on rewards. It provides good exploration-exploitation
+    balance and handles non-stationary rewards well through the decay mechanism.
+    
+    The algorithm works by:
+    1. Sampling from Beta(alpha_i, beta_i) for each arm
+    2. Selecting the arm with highest sampled value
+    3. Updating alpha_i (success) or beta_i (failure) based on reward
+    """
+    
+    def __init__(
+        self,
+        n_arms: Optional[int] = None,
+        seed: Optional[int] = None,
+        arm_names: Optional[List[str]] = None,
+        auto_decay: Optional[float] = 0.99,  # More aggressive decay for non-stationary
+        shift_by_baseline: bool = True,
+        shift_by_parent: bool = True,
+        prior_alpha: float = 1.0,  # Prior success count
+        prior_beta: float = 1.0,   # Prior failure count
+        reward_scaling: float = 1.0,  # Scale rewards for Beta updates
+        **kwargs: Any,
+    ):
+        super().__init__(
+            n_arms=n_arms,
+            seed=seed,
+            arm_names=arm_names,
+            auto_decay=auto_decay,
+            shift_by_baseline=shift_by_baseline,
+            shift_by_parent=shift_by_parent,
+        )
+        
+        # Validate parameters
+        if prior_alpha <= 0 or prior_beta <= 0:
+            raise ValueError("prior_alpha and prior_beta must be > 0")
+        if reward_scaling <= 0:
+            raise ValueError("reward_scaling must be > 0")
+            
+        self.prior_alpha = float(prior_alpha)
+        self.prior_beta = float(prior_beta)
+        self.reward_scaling = float(reward_scaling)
+        
+        # Initialize Beta parameters for each arm
+        n = self.n_arms
+        self.alpha = np.full(n, self.prior_alpha, dtype=np.float64)
+        self.beta = np.full(n, self.prior_beta, dtype=np.float64)
+        self.n_submitted = np.zeros(n, dtype=np.float64)
+        self.n_completed = np.zeros(n, dtype=np.float64)
+        
+    @property
+    def n(self) -> np.ndarray:
+        return np.maximum(self.n_submitted, self.n_completed)
+    
+    def _sigmoid(self, x: float) -> float:
+        """Sigmoid function to map rewards to [0,1] range."""
+        return 1.0 / (1.0 + np.exp(-x * self.reward_scaling))
+    
+    def update_submitted(self, arm: Arm) -> float:
+        arm_idx = self._resolve_arm(arm)
+        self.n_submitted[arm_idx] += 1.0
+        return self.n[arm_idx]
+    
+    def update(
+        self, 
+        arm: Arm, 
+        reward: Optional[float], 
+        baseline: Optional[float] = None
+    ) -> tuple[float, float]:
+        arm_idx = self._resolve_arm(arm)
+        is_real = reward is not None
+        
+        # Handle baseline shifting (same logic as AsymmetricUCB)
+        if self._shift_by_parent and self._shift_by_baseline:
+            baseline = (
+                self._baseline if baseline is None else max(baseline, self._baseline)
+            )
+        elif self._shift_by_baseline:
+            baseline = self._baseline
+        elif not self._shift_by_parent:
+            baseline = 0.0
+        if baseline is None:
+            raise ValueError("baseline required when shifting is active")
+            
+        # Process reward
+        if is_real:
+            r_raw = float(reward)
+        else:
+            # For failed/missing rewards, use a pessimistic value
+            r_raw = baseline - 1.0  # Penalty for failures
+            
+        r = r_raw - baseline
+        
+        # Convert reward to success probability using sigmoid
+        # Positive rewards -> higher probability of success
+        success_prob = self._sigmoid(r)
+        
+        # Update Beta parameters
+        # We treat this as a Bernoulli trial with success probability based on reward
+        if is_real or r < 0:  # Only update for real rewards or penalties
+            self.alpha[arm_idx] += success_prob
+            self.beta[arm_idx] += (1.0 - success_prob)
+            
+        self.n_completed[arm_idx] += 1.0
+        
+        # Apply decay
+        self._maybe_decay()
+        
+        return r, baseline
+    
+    def posterior(
+        self, 
+        subset: Subset = None, 
+        samples: Optional[int] = None, 
+        **kwargs: Any
+    ) -> np.ndarray:
+        idx = self._resolve_subset(subset)
+        probs = np.zeros(self._n_arms, dtype=np.float64)
+        
+        if samples is None or int(samples) <= 1:
+            # Single sample from each Beta distribution, then select best
+            beta_samples = np.zeros(len(idx))
+            for i, arm_idx in enumerate(idx):
+                beta_samples[i] = self.rng.beta(
+                    self.alpha[arm_idx], 
+                    self.beta[arm_idx]
+                )
+            
+            # Select arm with highest sample (Thompson Sampling)
+            best_idx = np.argmax(beta_samples)
+            probs[idx[best_idx]] = 1.0
+            
+        else:
+            # Multi-sample version: sample multiple times and compute selection frequencies
+            samples = int(samples)
+            selection_counts = np.zeros(len(idx), dtype=int)
+            
+            for _ in range(samples):
+                beta_samples = np.zeros(len(idx))
+                for i, arm_idx in enumerate(idx):
+                    beta_samples[i] = self.rng.beta(
+                        self.alpha[arm_idx], 
+                        self.beta[arm_idx]
+                    )
+                best_idx = np.argmax(beta_samples)
+                selection_counts[best_idx] += 1
+            
+            # Convert counts to probabilities
+            selection_probs = selection_counts.astype(np.float64) / samples
+            probs[idx] = selection_probs
+            
+        return probs
+    
+    def decay(self, factor: float) -> None:
+        """
+        Apply decay to Beta parameters to handle non-stationary rewards.
+        
+        This moves the parameters closer to the prior, effectively "forgetting"
+        old observations to adapt to changing reward distributions.
+        """
+        if not (0.0 < factor <= 1.0):
+            raise ValueError("factor must be in (0, 1]")
+            
+        # Exponential decay towards prior
+        # alpha = factor * alpha + (1 - factor) * prior_alpha
+        self.alpha = factor * self.alpha + (1.0 - factor) * self.prior_alpha
+        self.beta = factor * self.beta + (1.0 - factor) * self.prior_beta
+        
+        # Also decay submission counts
+        self.n_submitted *= factor
+        self.n_completed *= factor
+    
+    def print_summary(self) -> None:
+        """Print a summary table of the Thompson Sampling bandit state."""
+        names = self._arm_names or [str(i) for i in range(self._n_arms)]
+        post = self.posterior()
+        n = self.n.astype(int)
+        
+        # Compute statistics
+        mean = self.alpha / (self.alpha + self.beta)  # Beta distribution mean
+        variance = (self.alpha * self.beta) / ((self.alpha + self.beta)**2 * (self.alpha + self.beta + 1))
+        std = np.sqrt(variance)
+        
+        # Create header information
+        header_info = (
+            f"ThompsonSamplingBandit (prior_α={self.prior_alpha:.2f}, "
+            f"prior_β={self.prior_beta:.2f}, reward_scale={self.reward_scaling:.2f}, "
+            f"shift_base={self._shift_by_baseline}, shift_parent={self._shift_by_parent})"
+        )
+        
+        additional_info = []
+        if self._auto_decay is not None:
+            additional_info.append(f"auto_decay={self._auto_decay:.3f}")
+        additional_info.append(f"baseline={self._baseline:.6f}")
+        
+        # Create rich table
+        table = Table(
+            title=header_info,
+            box=rich.box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+            width=120,
+        )
+        
+        # Add columns
+        table.add_column("arm", style="white", width=24)
+        table.add_column("n", justify="right", style="green")
+        table.add_column("α", justify="right", style="yellow") 
+        table.add_column("β", justify="right", style="yellow")
+        table.add_column("mean", justify="right", style="blue")
+        table.add_column("std", justify="right", style="magenta")
+        table.add_column("post", justify="right", style="bright_green")
+        
+        # Add rows
+        for i, name in enumerate(names):
+            # Split name by "/" and take last part, then last 24 chars
+            if isinstance(name, str):
+                display_name = name.split("/")[-1][-24:]
+            else:
+                display_name = str(name)
+            table.add_row(
+                display_name,
+                f"{n[i]:d}",
+                f"{self.alpha[i]:.3f}",
+                f"{self.beta[i]:.3f}",
+                f"{mean[i]:.4f}",
+                f"{std[i]:.4f}",
+                f"{post[i]:.4f}",
+            )
+        
+        # Print additional info
+        if additional_info:
+            info_text = " | ".join(additional_info)
+            table.caption = info_text
+            
+        # Print directly to console
+        console = Console()
+        console.print(table)
+
+
 class FixedSampler(BanditBase):
     # samples from fixed prior probabilities; no learning or decay
     def __init__(
