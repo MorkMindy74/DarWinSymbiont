@@ -393,3 +393,185 @@ class TestArchiveIntegration:
             result = reproduce_agent("nonexistent")
             assert not result["success"]
             assert "not found" in result["error"].lower()
+    
+    def test_export_dirty_repo(self):
+        """Test export with dirty repository includes diff.patch correctly."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive = AgentArchive(temp_dir)
+            
+            # Mock dirty git state with actual diff content
+            with patch.object(archive, '_get_git_info') as mock_git_info:
+                mock_git_info.return_value = {
+                    "commit": "abcd1234",
+                    "branch": "feature/test",
+                    "dirty": True
+                }
+                
+                with patch('subprocess.run') as mock_subprocess:
+                    # Mock git diff with realistic output
+                    diff_content = """diff --git a/shinka/test.py b/shinka/test.py
+index 1234567..abcdefg 100644
+--- a/shinka/test.py
++++ b/shinka/test.py
+@@ -1,3 +1,4 @@
+ def test_function():
++    # Added this comment
+     return True
+ 
+"""
+                    mock_subprocess.return_value = MagicMock(
+                        returncode=0, 
+                        stdout=diff_content
+                    )
+                    
+                    config = {"algorithm": "context", "seed": 42}
+                    
+                    with patch('pathlib.Path.exists', return_value=False):
+                        agent_id = archive.save_agent(config)
+                    
+                    # Verify diff.patch was created with correct content
+                    agents_dir = archive.archive_root / "agents"
+                    agent_dir = next(agents_dir.iterdir())
+                    
+                    assert (agent_dir / "diff.patch").exists()
+                    patch_content = (agent_dir / "diff.patch").read_text()
+                    assert "diff --git" in patch_content
+                    assert "Added this comment" in patch_content
+                    
+                    # Test export includes diff.patch without crash
+                    export_path = Path(temp_dir) / "dirty_export.zip"
+                    success = archive.export_agent(agent_id, str(export_path))
+                    
+                    assert success
+                    assert export_path.exists()
+                    
+                    # Verify ZIP contains diff.patch
+                    with zipfile.ZipFile(export_path, 'r') as zipf:
+                        files = zipf.namelist()
+                        assert "diff.patch" in files
+                        
+                        # Verify diff.patch content in ZIP
+                        diff_in_zip = zipf.read("diff.patch").decode('utf-8')
+                        assert "Added this comment" in diff_in_zip
+    
+    def test_lineage_chain_consistency(self):
+        """Test lineage chain with parent_id → child_id consistency across multiple runs."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive = AgentArchive(temp_dir)
+            
+            # Create lineage chain: gen0 → gen1 → gen2
+            configs = [
+                {"algorithm": "baseline", "generation": 0, "fitness": 0.5},
+                {"algorithm": "context", "generation": 1, "fitness": 0.7},
+                {"algorithm": "context", "generation": 2, "fitness": 0.9}
+            ]
+            
+            agent_ids = []
+            
+            with patch('pathlib.Path.exists', return_value=False):
+                for i, config in enumerate(configs):
+                    parent_id = agent_ids[-1] if agent_ids else None
+                    agent_id = archive.save_agent(config, parent_id=parent_id)
+                    agent_ids.append(agent_id)
+            
+            # Verify lineage consistency
+            assert len(agent_ids) == 3
+            
+            # Check first agent (root)
+            manifest0 = archive.get_agent_manifest(agent_ids[0])
+            assert manifest0.parent_id is None
+            
+            # Check second agent (child of first)
+            manifest1 = archive.get_agent_manifest(agent_ids[1])
+            assert manifest1.parent_id == agent_ids[0]
+            
+            # Check third agent (child of second)
+            manifest2 = archive.get_agent_manifest(agent_ids[2])
+            assert manifest2.parent_id == agent_ids[1]
+            
+            # Verify chain traversal
+            lineage_chain = []
+            current_id = agent_ids[2]  # Start from leaf
+            
+            while current_id:
+                manifest = archive.get_agent_manifest(current_id)
+                lineage_chain.append(current_id)
+                current_id = manifest.parent_id
+            
+            # Chain should be: gen2 → gen1 → gen0
+            assert lineage_chain == [agent_ids[2], agent_ids[1], agent_ids[0]]
+            
+            # Verify all agents in lineage are findable
+            all_agents = archive.list_agents()
+            found_ids = [agent["id"] for agent in all_agents]
+            
+            for agent_id in agent_ids:
+                assert agent_id in found_ids
+    
+    def test_import_corrupt_zip(self):
+        """Test graceful failure on corrupted ZIP without corrupting archive."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive = AgentArchive(temp_dir)
+            
+            # Create valid agent first
+            config = {"algorithm": "context", "seed": 42}
+            
+            with patch('pathlib.Path.exists', return_value=False):
+                valid_agent_id = archive.save_agent(config)
+            
+            # Verify initial state
+            initial_agents = archive.list_agents()
+            assert len(initial_agents) == 1
+            
+            # Test various corruption scenarios
+            
+            # 1. Completely invalid ZIP
+            corrupt_zip1 = Path(temp_dir) / "corrupt1.zip"
+            corrupt_zip1.write_text("This is not a ZIP file at all")
+            
+            imported_id1 = archive.import_agent(str(corrupt_zip1))
+            assert imported_id1 is None
+            
+            # Archive should be unchanged
+            agents_after_corrupt1 = archive.list_agents()
+            assert len(agents_after_corrupt1) == 1
+            assert agents_after_corrupt1[0]["id"] == valid_agent_id
+            
+            # 2. Valid ZIP but missing manifest.json
+            corrupt_zip2 = Path(temp_dir) / "corrupt2.zip"
+            with zipfile.ZipFile(corrupt_zip2, 'w') as zipf:
+                zipf.writestr("some_file.txt", "content")
+                zipf.writestr("artifacts/config.yaml", "test: config")
+                # Missing manifest.json
+            
+            imported_id2 = archive.import_agent(str(corrupt_zip2))
+            assert imported_id2 is None
+            
+            # Archive should still be unchanged
+            agents_after_corrupt2 = archive.list_agents()
+            assert len(agents_after_corrupt2) == 1
+            
+            # 3. Valid ZIP with malformed manifest.json
+            corrupt_zip3 = Path(temp_dir) / "corrupt3.zip"
+            with zipfile.ZipFile(corrupt_zip3, 'w') as zipf:
+                zipf.writestr("manifest.json", "{ invalid json content }")
+                zipf.writestr("artifacts/config.yaml", "test: config")
+            
+            imported_id3 = archive.import_agent(str(corrupt_zip3))
+            assert imported_id3 is None
+            
+            # Archive should remain stable
+            agents_after_corrupt3 = archive.list_agents()
+            assert len(agents_after_corrupt3) == 1
+            
+            # 4. Test that valid import still works after corruption attempts
+            export_path = Path(temp_dir) / "valid_export.zip"
+            success = archive.export_agent(valid_agent_id, str(export_path))
+            assert success
+            
+            imported_valid_id = archive.import_agent(str(export_path))
+            assert imported_valid_id == valid_agent_id
+            
+            # Should have original agent (no duplicates because same ID)
+            final_agents = archive.list_agents()
+            assert len(final_agents) == 1
