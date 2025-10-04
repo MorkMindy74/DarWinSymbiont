@@ -40,7 +40,7 @@ async def analyze_problem(
         analysis = await analysis_service.analyze_problem(problem_id, problem_input)
         
         # Save analysis to database if db provided
-        if db:
+        if db is not None:
             analysis_dict = analysis.model_dump()
             # Upsert (update or insert)
             await db.analyses.update_one(
