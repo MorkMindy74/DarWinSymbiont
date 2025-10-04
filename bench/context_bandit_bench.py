@@ -329,8 +329,8 @@ class EvolutionSimulator:
             self.bandit = ThompsonSamplingBandit(
                 arm_names=models,
                 seed=config.seed,
-                prior_alpha=2.0,
-                prior_beta=1.0,
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
                 auto_decay=1.0,  # No decay
                 reward_mapping="adaptive"
             )
@@ -339,21 +339,36 @@ class EvolutionSimulator:
             self.bandit = ThompsonSamplingBandit(
                 arm_names=models,
                 seed=config.seed,
-                prior_alpha=2.0,
-                prior_beta=1.0,
-                auto_decay=0.99,
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
+                auto_decay=auto_decay,
                 reward_mapping="adaptive"
             )
         elif config.algorithm == "context":
-            # Context-Aware Thompson Sampling (full features)
+            # Context-Aware Thompson Sampling with ablations
+            contexts = ["early", "mid", "late", "stuck"]
+            features = ["gen_progress", "no_improve", "fitness_slope", "pop_diversity"]
+            
+            # Apply ablations
+            if config.ablation == "no_gen_progress":
+                features.remove("gen_progress")
+            elif config.ablation == "no_no_improve":
+                features.remove("no_improve")
+            elif config.ablation == "no_fitness_slope":
+                features.remove("fitness_slope")
+            elif config.ablation == "no_pop_diversity":
+                features.remove("pop_diversity")
+            elif config.ablation == "3contexts":
+                contexts = ["early", "mid_late", "stuck"]  # Merge mid/late
+            
             self.bandit = ContextAwareThompsonSamplingBandit(
                 arm_names=models,
                 seed=config.seed,
-                contexts=["early", "mid", "late", "stuck"],
-                features=["gen_progress", "no_improve", "fitness_slope", "pop_diversity"],
-                prior_alpha=2.0,
-                prior_beta=1.0,
-                auto_decay=0.99,
+                contexts=contexts,
+                features=features,
+                prior_alpha=prior_alpha,
+                prior_beta=prior_beta,
+                auto_decay=auto_decay,
                 reward_mapping="adaptive"
             )
         elif config.algorithm == "ucb":
