@@ -667,6 +667,10 @@ class EvolutionRunner:
                 return
 
         self.completed_generations = completed_up_to
+        
+        # Update context-aware bandit if using thompson_context
+        if isinstance(self.llm_selection, ContextAwareThompsonSamplingBandit):
+            self._update_bandit_context()
 
     def _submit_new_job(self):
         """Submit a new job to the queue."""
