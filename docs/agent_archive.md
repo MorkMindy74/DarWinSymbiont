@@ -230,6 +230,40 @@ Each agent has a complete `manifest.json` with DGM-compatible metadata:
     "prompts_used": [],
     "swe_bench_commit": "c52badb4798efae1426039885f13335566026f67", 
     "polyglot_prepared": true
+  },
+  
+  "benchmarks_full": {
+    "toy_baseline_timeseries": "timeseries/baseline_toy_timeseries.csv",
+    "tsp_context_timeseries": "timeseries/context_tsp_timeseries.csv"
+  },
+  
+  "complexity_metrics": {
+    "lines_of_code_total": 22315,
+    "cyclomatic_complexity": 3.2,
+    "coupling_between_objects": 2,
+    "code_coverage_pct": 85.0,
+    "technical_debt_ratio": 0.0
+  },
+  
+  "validation_levels": {
+    "static_checks": {"ruff": "fail", "mypy": "unknown"},
+    "unit_tests": {"status": "pass", "passed": 17, "failed": 0},
+    "property_based": {"status": "not_implemented"},
+    "fuzz_tests": {"status": "not_implemented"}
+  },
+  
+  "cost_breakdown": {
+    "mock_model": {"queries": 2600.0, "cost_usd": 0.0},
+    "gpt_4o": {"queries": 0, "cost_usd": 78.0},
+    "claude_sonnet": {"queries": 0, "cost_usd": 39.0},
+    "gemini_pro": {"queries": 0, "cost_usd": 2.6}
+  },
+  
+  "artifact_refs": {
+    "benchmark_reports": "artifacts/benchmark_reports",
+    "plots": "artifacts/benchmark_reports/plots", 
+    "config_snapshot": "artifacts/config_used.yaml",
+    "benchmark_summary": "artifacts/benchmark_reports/summary.csv"
   }
 }
 ```
