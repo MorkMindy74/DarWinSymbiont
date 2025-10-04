@@ -71,10 +71,11 @@ async def get_database() -> AsyncIOMotorDatabase:
     return database
 
 
-# Include routers with database dependency
-problem.get_db = get_database
-analysis.get_database = get_database
+# Override the get_db dependency in routers
+app.dependency_overrides[problem.get_db] = get_database
+app.dependency_overrides[analysis.get_db] = get_database
 
+# Include routers
 app.include_router(problem.router)
 app.include_router(analysis.router)
 
