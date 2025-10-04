@@ -744,14 +744,17 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
         logger.warning("No results found for analysis")
         return {}
     
-    # Aggregate by algorithm and benchmark
+    # Aggregate by algorithm and benchmark with comprehensive metrics
     aggregated = results_df.groupby(['algorithm', 'benchmark']).agg({
         'final_fitness': ['mean', 'std', 'count'],
         'llm_queries_total': ['mean', 'std'],
         'llm_queries_while_stuck': ['mean', 'std'],
         'time_to_first_improve': ['median', 'std'],
         'area_under_curve': ['mean', 'std'],
-        'context_switches': ['mean', 'std']
+        'context_switches': ['mean', 'std'],
+        'oscillation_count': ['mean', 'max'],
+        'fitness_variance': ['mean', 'std'],
+        'stuck_periods_count': ['mean', 'std']
     }).round(4)
     
     # Save summary
