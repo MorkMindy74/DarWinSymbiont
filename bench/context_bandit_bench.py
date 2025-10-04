@@ -826,6 +826,11 @@ def main():
     parser.add_argument('--model', default='mock', help='LLM model to use')
     parser.add_argument('--output_dir', default='reports/context_bandit/raw', 
                        help='Output directory')
+    parser.add_argument('--ablation', choices=['none', 'no_gen_progress', 'no_no_improve', 
+                       'no_fitness_slope', 'no_pop_diversity', '3contexts'], 
+                       default='none', help='Feature ablation for context algorithm')
+    parser.add_argument('--hyperparams', default='2.0,1.0,0.99', 
+                       help='prior_alpha,prior_beta,decay (comma-separated)')
     parser.add_argument('--make-report', action='store_true', 
                        help='Generate analysis and plots')
     
