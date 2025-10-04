@@ -732,8 +732,8 @@ def main():
     parser = argparse.ArgumentParser(description="Context-Aware Thompson Sampling Benchmark")
     parser.add_argument('--benchmark', choices=['toy', 'tsp', 'synthetic', 'all'], 
                        default='toy', help='Benchmark to run')
-    parser.add_argument('--algo', choices=['baseline', 'context', 'both'], 
-                       default='both', help='Algorithm to test')
+    parser.add_argument('--algo', choices=['baseline', 'decay', 'context', 'ucb', 'epsilon', 'all'], 
+                       default='all', help='Algorithm to test')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--budget_steps', type=int, default=1500, help='Evolution steps (full=1500, quick=300)')
     parser.add_argument('--model', default='mock', help='LLM model to use')
