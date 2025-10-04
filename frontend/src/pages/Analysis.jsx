@@ -270,9 +270,9 @@ function Analysis() {
         </p>
         <button
           className="bg-white text-primary-600 hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg transition transform hover:scale-105 shadow-lg"
-          onClick={() => toast.info('Evolution simulation coming in Phase 3-4!')}
+          onClick={() => handleStartEvolution()}
         >
-          Start Evolution (Coming Soon)
+          Start Evolution →
         </button>
       </div>
     </div>
