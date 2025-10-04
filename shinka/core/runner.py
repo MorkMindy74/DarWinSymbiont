@@ -37,6 +37,7 @@ from shinka.core.sampler import PromptSampler
 from shinka.core.summarizer import MetaSummarizer
 from shinka.core.novelty_judge import NoveltyJudge
 from shinka.logo import print_gradient_logo
+from shinka.archive import AgentArchive
 
 FOLDER_PREFIX = "gen"
 
