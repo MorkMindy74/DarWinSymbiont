@@ -16,7 +16,7 @@ sys.path.insert(0, str(DARWIN_PATH))
 
 from shinka.core.runner import EvolutionConfig, EvolutionRunner
 from shinka.database import DatabaseConfig
-from shinka.launch import JobConfig
+from shinka.launch import LocalJobConfig
 
 
 class ShinkaEvolutionBridge:
