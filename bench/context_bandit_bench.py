@@ -26,6 +26,7 @@ import logging
 sys.path.insert(0, '/app')
 
 from shinka.llm.dynamic_sampling import ThompsonSamplingBandit, ContextAwareThompsonSamplingBandit
+from shinka.dedup import create_dedup_manager
 
 
 class EpsilonGreedyBandit:
