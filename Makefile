@@ -69,6 +69,17 @@ bench_cache:
 	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 200 --model mock --cache off
 	@echo "Cache determinism test complete."
 
+# Deduplication effectiveness test
+bench_dedup:
+	@echo "Testing deduplication effectiveness..."
+	@echo "Running WITHOUT deduplication:"
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 300 --model mock --dedup off
+	@echo "Running WITH MinHash deduplication:"
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 300 --model mock --dedup on --dedup-method minhash --dedup-threshold 0.8
+	@echo "Running WITH SimHash deduplication:"
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 300 --model mock --dedup on --dedup-method simhash --dedup-threshold 0.8
+	@echo "Deduplication test complete."
+
 # Complete extended suite with all features
 bench_full_extended:
 	@echo "Running FULL extended benchmark suite..."
