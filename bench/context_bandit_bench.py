@@ -27,6 +27,64 @@ sys.path.insert(0, '/app')
 
 from shinka.llm.dynamic_sampling import ThompsonSamplingBandit, ContextAwareThompsonSamplingBandit
 
+
+class EpsilonGreedyBandit:
+    """Epsilon-Greedy bandit for baseline comparison."""
+    
+    def __init__(self, arm_names: List[str], seed: int = 42, epsilon: float = 0.1, decay_rate: float = 0.995):
+        self.arm_names = arm_names
+        self.epsilon = epsilon
+        self.decay_rate = decay_rate
+        self.initial_epsilon = epsilon
+        
+        self.rng = np.random.RandomState(seed)
+        self.n_arms = len(arm_names)
+        
+        # Track statistics
+        self.counts = np.zeros(self.n_arms)
+        self.rewards = np.zeros(self.n_arms)
+        self.submitted = []
+        
+    def posterior(self) -> np.ndarray:
+        """Return selection probabilities (for compatibility)."""
+        # Epsilon-greedy selection probabilities
+        if np.sum(self.counts) == 0:
+            return np.ones(self.n_arms) / self.n_arms
+        
+        avg_rewards = np.divide(self.rewards, self.counts, 
+                              out=np.zeros_like(self.rewards), where=self.counts!=0)
+        
+        # Find best arm
+        best_arm = np.argmax(avg_rewards)
+        probs = np.ones(self.n_arms) * (self.epsilon / self.n_arms)
+        probs[best_arm] += (1 - self.epsilon)
+        
+        return probs
+    
+    def sample(self) -> str:
+        """Sample an arm name using epsilon-greedy strategy."""
+        probs = self.posterior()
+        selected_idx = self.rng.choice(self.n_arms, p=probs)
+        return self.arm_names[selected_idx]
+    
+    def sample_n(self, n: int) -> List[str]:
+        """Sample multiple arms."""
+        return [self.sample() for _ in range(n)]
+    
+    def update_submitted(self, arm_name: str):
+        """Track submitted queries."""
+        self.submitted.append(arm_name)
+    
+    def update(self, arm_name: str, reward: float, baseline: float = 0.5):
+        """Update arm statistics."""
+        arm_idx = self.arm_names.index(arm_name)
+        self.counts[arm_idx] += 1
+        self.rewards[arm_idx] += reward
+        
+        # Decay epsilon
+        self.epsilon *= self.decay_rate
+        self.epsilon = max(0.01, self.epsilon)  # Minimum epsilon
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
