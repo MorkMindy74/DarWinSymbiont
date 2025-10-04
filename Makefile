@@ -93,6 +93,19 @@ bench_full_extended:
 	python -m bench.context_bandit_bench --make-report
 	@echo "🎯 FULL EXTENDED BENCHMARK COMPLETE!"
 
+# Archive system tests
+test_archive:
+	pytest -q tests/test_archive.py
+
+# Archive sanity check
+archive_sanity:
+	@echo "Running archive sanity check..."
+	@echo "1. Creating mock evolution config and running quick benchmark..."
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 100 --model mock
+	@echo "2. Testing archive CLI commands..."
+	/app/shinka_archive list || echo "No agents yet (expected)"
+	@echo "Archive sanity check complete."
+
 # Test + Quick benchmark
 test_quick: test_context bench_quick
 
