@@ -112,39 +112,7 @@ test_quick: test_context bench_quick
 # Regression test against archived agents
 regression_test:
 	@echo "Running regression test against archived agents..."
-	python -c "
-	import sys
-	sys.path.insert(0, '/app')
-	from shinka.archive import list_archived_agents, reproduce_agent
-	import json
-	
-	# Find latest stable agent
-	agents = list_archived_agents()
-	if not agents:
-		print('No agents found - creating reference agent...')
-		from shinka.archive import create_agent_archive
-		archive = create_agent_archive()
-		config = {'algorithm': 'context', 'seed': 42, 'benchmark': 'toy', 'stable': True}
-		agent_id = archive.save_agent(config)
-		print(f'Created reference agent: {agent_id}')
-		agents = [{'id': agent_id}]
-	
-	# Use most recent agent
-	target_agent = agents[0]
-	agent_id = target_agent['id']
-	print(f'Testing agent: {agent_id}')
-	
-	# Run reproduction test
-	result = reproduce_agent(agent_id, tolerance_pct=1.0)
-	
-	if result['success']:
-		print('✅ REGRESSION TEST PASSED')
-		exit(0)
-	else:
-		print(f'❌ REGRESSION TEST FAILED: {result.get(\"error\", \"Unknown error\")}')
-		print('Details:', json.dumps(result.get('verification_results', {}), indent=2))
-		exit(1)
-	"
+	@python scripts/regression_test.py
 	@echo "Regression test complete."
 
 # Complete validation pipeline
