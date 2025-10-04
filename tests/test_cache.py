@@ -82,7 +82,8 @@ class TestLLMCache(unittest.TestCase):
             enabled=True,
             mode="exact",
             path=self.cache_path,
-            ttl_hours=1.0  # 1 hour for testing
+            ttl_hours=1.0,  # 1 hour for testing
+            key_fields=["prompt", "seed", "model", "tool_state", "temperature", "max_tokens"]
         )
         
         self.cache = LLMCache(self.config)
