@@ -434,6 +434,18 @@ class EvolutionRunner:
 
         # Save final meta memory state
         self._save_meta_memory()
+        
+        # Auto-save final agent to archive if enabled
+        if (self.archive is not None and 
+            self.evo_config.archive_auto_save and 
+            "on_finish" in self.evo_config.archive_save_on and
+            best_program is not None):
+            
+            try:
+                self._save_agent_to_archive(best_program, "on_finish")
+                logger.info("Final agent saved to archive")
+            except Exception as e:
+                logger.warning(f"Failed to save final agent to archive: {e}")
 
         self.db.print_summary()
         logger.info(f"Evolution completed! {self.completed_generations} generations")
