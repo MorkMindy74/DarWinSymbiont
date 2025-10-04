@@ -5,10 +5,10 @@ import asyncio
 import sys
 import os
 
-# Add backend to path
-sys.path.insert(0, '/app/backend')
+# Add parent to path for imports
+sys.path.insert(0, '/app')
 
-from services.llm_service import LLMService
+from backend.services.llm_service import LLMService
 
 
 async def test_llm():
