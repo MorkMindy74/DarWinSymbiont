@@ -95,7 +95,7 @@ bench_full_extended:
 
 # Archive system tests
 test_archive:
-	pytest -q tests/test_archive.py
+	python -m pytest tests/test_archive.py -q
 
 # Archive sanity check
 archive_sanity:
