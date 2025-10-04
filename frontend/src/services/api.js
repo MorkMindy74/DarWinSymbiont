@@ -23,6 +23,15 @@ export const analysisAPI = {
     api.post(`/api/analysis/generate-code/${problemId}?code_type=${codeType}`),
 };
 
+export const evolutionAPI = {
+  configure: (problemId, userConfig) =>
+    api.post(`/api/evolution/configure/${problemId}`, userConfig),
+  start: (sessionId) =>
+    api.post(`/api/evolution/start/${sessionId}`),
+  getStatus: (sessionId) =>
+    api.get(`/api/evolution/status/${sessionId}`),
+};
+
 export const healthAPI = {
   check: () => api.get('/api/health'),
 };
