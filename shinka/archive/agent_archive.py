@@ -55,6 +55,13 @@ class AgentManifest:
     # DGM compatibility
     dgm_compat: Dict[str, Any]
     
+    # Production-grade enrichment
+    benchmarks_full: Dict[str, str]  # References to time series files
+    complexity_metrics: Dict[str, Any]  # Code complexity analysis
+    validation_levels: Dict[str, Any]  # Static checks, unit, property, fuzz test results
+    cost_breakdown: Dict[str, Dict[str, float]]  # Per-model cost breakdown
+    artifact_refs: Dict[str, str]  # Paths to generated artifacts
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert manifest to dictionary."""
         return asdict(self)
