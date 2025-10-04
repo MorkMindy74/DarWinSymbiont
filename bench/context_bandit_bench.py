@@ -647,36 +647,93 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
                 # Read CSV data
                 df = pd.read_csv(csv_file)
                 
-                # Calculate metrics
+                # Calculate comprehensive metrics
                 final_fitness = df['best_fitness'].iloc[-1]
                 llm_queries_total = df['llm_queries_cum'].iloc[-1]
                 
-                # Time to first improvement
+                # Time to first improvement (median will be calculated across seeds)
                 improvement_steps = df[df['improvement'] == True]
-                time_to_first_improve = improvement_steps['step'].iloc[0] if len(improvement_steps) > 0 else None
+                time_to_first_improve = improvement_steps['step'].iloc[0] if len(improvement_steps) > 0 else len(df)
                 
-                # Stuck phase analysis
+                # Stuck phase analysis (W=25 window)
                 stuck_queries = 0
+                stuck_periods = []
                 window_size = 25
+                
                 for i in range(window_size, len(df)):
                     recent_best = df['best_fitness'].iloc[i-window_size:i]
-                    if recent_best.max() <= recent_best.min() + 1e-6:  # Stuck
+                    recent_slope = df['fitness_slope'].iloc[i] if 'fitness_slope' in df.columns else 0
+                    
+                    # Stuck if no improvement OR negative slope
+                    is_stuck = (recent_best.max() <= recent_best.min() + 1e-6) or (recent_slope < 0)
+                    
+                    if is_stuck:
                         stuck_queries += df['llm_queries'].iloc[i]
+                        stuck_periods.append(i)
                 
-                # Area under curve
+                # Area under curve (AUC)
                 auc = np.trapezoid(df['best_fitness'].values)
+                
+                # Context-specific analysis
+                context_switches = 0
+                dwell_times = {}
+                oscillation_count = 0
+                
+                if 'context' in df.columns and algorithm in ['context']:
+                    contexts = df['context'].values
+                    
+                    # Count context switches
+                    for i in range(1, len(contexts)):
+                        if contexts[i] != contexts[i-1]:
+                            context_switches += 1
+                    
+                    # Calculate dwell times by context
+                    for context in df['context'].unique():
+                        if context and context != 'none':
+                            dwell_times[context] = np.sum(df['context'] == context) / len(df)
+                    
+                    # Detect oscillation (thrashing) - rapid context switches
+                    if context_switches > 0:
+                        switch_density = context_switches / len(df)
+                        oscillation_count = switch_density if switch_density > 0.1 else 0
+                
+                # Variance/stability analysis
+                fitness_variance = np.var(df['best_fitness'].values)
                 
                 result = {
                     'algorithm': algorithm,
-                    'benchmark': benchmark,
+                    'benchmark': benchmark, 
                     'seed': seed,
                     'final_fitness': final_fitness,
                     'llm_queries_total': llm_queries_total,
                     'llm_queries_while_stuck': stuck_queries,
                     'time_to_first_improve': time_to_first_improve,
                     'area_under_curve': auc,
-                    'context_switches': df['context'].nunique() - 1 if 'context' in df.columns else 0
+                    'context_switches': context_switches,
+                    'dwell_times': dwell_times,
+                    'oscillation_count': oscillation_count,
+                    'fitness_variance': fitness_variance,
+                    'stuck_periods_count': len(stuck_periods)
                 }
+                
+                # Store context switch data for analysis
+                if context_switches > 0:
+                    context_switch_data.append({
+                        'algorithm': algorithm,
+                        'benchmark': benchmark,
+                        'seed': seed,
+                        'switches': context_switches,
+                        'dwell_times': dwell_times
+                    })
+                
+                # Store oscillation data
+                if oscillation_count > 0:
+                    oscillation_data.append({
+                        'algorithm': algorithm,
+                        'benchmark': benchmark,
+                        'seed': seed,
+                        'oscillation': oscillation_count
+                    })
                 
                 all_results.append(result)
     
