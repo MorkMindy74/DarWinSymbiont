@@ -109,6 +109,48 @@ archive_sanity:
 # Test + Quick benchmark
 test_quick: test_context bench_quick
 
+# DGM integration targets
+dgm_quick:
+	@echo "Running DGM quick benchmark..."
+	@echo "Building DGM Docker environment..."
+	docker-compose -f docker-compose.dgm.yml build dgm-sandbox || echo "Docker build failed - using mock mode"
+	@echo "Running minimal SWE-bench sample..."
+	python -m bench.context_bandit_bench --benchmark dgm_swe --algo context --seed 42 --budget_steps 200 --model mock
+	@echo "Running Polyglot sample..."
+	python -m bench.context_bandit_bench --benchmark dgm_polyglot --algo baseline --seed 42 --budget_steps 200 --model mock
+	@echo "DGM quick benchmark complete."
+
+dgm_live:
+	@echo "Running DGM with live models (requires API keys)..."
+	@if [ -z "$$OPENAI_API_KEY" ] && [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "Warning: No API keys found - using mock mode"; \
+		make dgm_quick; \
+	else \
+		echo "Running live DGM evaluation..."; \
+		python -m bench.context_bandit_bench --benchmark dgm_swe --algo context --seed 42 --budget_steps 50 --model gpt-4o; \
+	fi
+
+dgm_test_integration:
+	@echo "Testing DGM integration..."
+	@echo "Checking DGM submodule..."
+	@if [ ! -f "third_party/dgm/DGM_outer.py" ]; then \
+		echo "DGM submodule not found - initializing..."; \
+		git submodule update --init --recursive; \
+	else \
+		echo "✅ DGM submodule found"; \
+	fi
+	@echo "Testing DGM adapter..."
+	python -c "from adapters.dgm_runner import DGMConfig, DGMRunner; print('✅ DGM adapter imports OK')"
+	@echo "Testing DGM benchmark harness..."
+	python -m bench.context_bandit_bench --benchmark dgm_swe --algo baseline --seed 42 --budget_steps 10 --model mock
+	@echo "✅ DGM integration test complete"
+
+dgm_cleanup:
+	@echo "Cleaning up DGM containers and artifacts..."
+	docker-compose -f docker-compose.dgm.yml down -v || echo "No containers to clean"
+	rm -rf reports/dgm/* || echo "No artifacts to clean"
+	@echo "DGM cleanup complete."
+
 # Regression test against archived agents
 regression_test:
 	@echo "Running regression test against archived agents..."
