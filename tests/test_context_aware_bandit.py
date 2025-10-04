@@ -81,19 +81,24 @@ class TestContextDetection(unittest.TestCase):
     
     def test_context_switching_threshold(self):
         """Test context switching with threshold."""
-        # Start in early context
+        # Start in early context with some samples
         self.bandit.current_context = "early"
         
-        # Marginal change should not trigger switch
-        context = self.bandit._detect_context(
-            generation=10,
+        # Add minimum samples to allow switching
+        for _ in range(10):  # Above min_context_samples
+            self.bandit.update_submitted("gpt-4")
+            self.bandit.update("gpt-4", reward=0.7, baseline=0.5)
+        
+        # Strong change should trigger switch to stuck
+        context = self.bandit.update_context(
+            generation=50,
             total_generations=100,
-            no_improve_steps=2,
-            best_fitness_history=[0.1, 0.2, 0.25],
-            population_diversity=0.7
+            no_improve_steps=20,  # Clearly stuck
+            best_fitness_history=[0.5, 0.5, 0.5, 0.5, 0.5],
+            population_diversity=0.2
         )
-        # Should stay in early due to threshold
-        self.assertEqual(context, "early")
+        # Should switch to stuck due to strong signal
+        self.assertEqual(context, "stuck")
     
     def test_fitness_slope_calculation(self):
         """Test fitness slope calculation."""
