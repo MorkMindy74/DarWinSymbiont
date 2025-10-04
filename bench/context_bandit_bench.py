@@ -28,6 +28,14 @@ sys.path.insert(0, '/app')
 from shinka.llm.dynamic_sampling import ThompsonSamplingBandit, ContextAwareThompsonSamplingBandit
 from shinka.dedup import create_dedup_manager
 
+# DGM integration (optional)
+try:
+    from adapters.dgm_runner import DGMRunner, DGMConfig, run_dgm_swe_bench_quick, run_dgm_polyglot_quick
+    DGM_AVAILABLE = True
+except ImportError:
+    DGM_AVAILABLE = False
+    logger.warning("DGM integration not available - using mock implementation")
+
 
 class EpsilonGreedyBandit:
     """Epsilon-Greedy bandit for baseline comparison."""
