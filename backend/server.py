@@ -11,13 +11,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import routes
-try:
-    # Try relative imports first (when run as module)
-    from routes import problem, analysis
-except ImportError:
-    # Fall back to absolute imports
-    from backend.routes import problem, analysis
+# Import routes - use relative imports since uvicorn runs from backend directory
+from routes import problem, analysis
 
 
 # Global database client
