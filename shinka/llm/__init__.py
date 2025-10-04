@@ -22,4 +22,7 @@ __all__ = [
     "AsymmetricUCB",
     "ThompsonSamplingBandit",
     "FixedSampler",
+    "LLMCache",
+    "CachedLLMClient",
+    "CacheConfig",
 ]
