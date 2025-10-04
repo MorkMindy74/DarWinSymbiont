@@ -98,10 +98,6 @@ class EpsilonGreedyBandit:
         self.epsilon *= self.decay_rate
         self.epsilon = max(0.01, self.epsilon)  # Minimum epsilon
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 
 @dataclass
 class BenchmarkConfig:
