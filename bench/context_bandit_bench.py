@@ -126,6 +126,21 @@ class MockLLMScorer:
         elif problem_type in ["dgm_swe", "dgm_polyglot"]:
             self._init_dgm_benchmark(problem_type)
     
+    def _init_dgm_benchmark(self, problem_type: str):
+        """Initialize DGM benchmark parameters."""
+        self.dgm_type = problem_type
+        self.dgm_baseline_fitness = {
+            "dgm_swe": 0.15,      # SWE-bench typical success rate
+            "dgm_polyglot": 0.65   # Polyglot typical performance
+        }.get(problem_type, 0.5)
+        
+        # DGM-specific configuration
+        self.dgm_config = {
+            "instances": 1,  # Number of test instances
+            "max_iterations": 50,  # DGM iterations
+            "success_threshold": 0.8
+        }
+    
     def _init_tsp_berlin52(self):
         """Initialize Berlin52 TSP coordinates (TSPLIB format)."""
         # Berlin52 coordinates from TSPLIB (first 50 cities for consistency)
