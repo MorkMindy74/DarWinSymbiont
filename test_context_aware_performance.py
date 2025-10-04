@@ -38,31 +38,31 @@ class EvolutionSimulator:
         - balanced_model: Consistent across contexts
         """
         base_performance = {
-            "fast_model": 0.6,
-            "accurate_model": 0.7, 
-            "balanced_model": 0.65
+            "fast_model": 0.45,
+            "accurate_model": 0.55, 
+            "balanced_model": 0.50
         }
         
         context_multipliers = {
             "early": {
-                "fast_model": 1.3,      # 0.78 effective
-                "accurate_model": 0.8,  # 0.56 effective
-                "balanced_model": 1.0   # 0.65 effective
+                "fast_model": 1.6,      # 0.72 effective
+                "accurate_model": 0.7,  # 0.385 effective - much worse
+                "balanced_model": 1.0   # 0.50 effective
             },
             "mid": {
-                "fast_model": 1.1,      # 0.66 effective
-                "accurate_model": 1.0,  # 0.70 effective
-                "balanced_model": 1.1   # 0.715 effective
+                "fast_model": 1.2,      # 0.54 effective
+                "accurate_model": 1.1,  # 0.605 effective
+                "balanced_model": 1.15  # 0.575 effective - best in mid
             },
             "late": {
-                "fast_model": 0.9,      # 0.54 effective
-                "accurate_model": 1.1,  # 0.77 effective
-                "balanced_model": 1.05  # 0.68 effective
+                "fast_model": 0.8,      # 0.36 effective
+                "accurate_model": 1.3,  # 0.715 effective
+                "balanced_model": 1.1   # 0.55 effective
             },
             "stuck": {
-                "fast_model": 0.6,      # 0.36 effective - poor for exploration
-                "accurate_model": 1.4,  # 0.98 effective - excellent for precision
-                "balanced_model": 0.9   # 0.585 effective
+                "fast_model": 0.4,      # 0.18 effective - terrible for exploration
+                "accurate_model": 1.7,  # 0.935 effective - excellent for precision
+                "balanced_model": 0.7   # 0.35 effective
             }
         }
         
@@ -70,10 +70,29 @@ class EvolutionSimulator:
         multiplier = context_multipliers.get(context, {}).get(model, 1.0)
         
         # Add some noise and generation-based improvement
-        noise = self.rng.normal(0, 0.05)
-        generation_bonus = min(generation * 0.001, 0.05)  # Slight improvement over time
+        noise = self.rng.normal(0, 0.03)
         
-        return np.clip(base * multiplier + noise + generation_bonus, 0.0, 1.0)
+        # Different improvement rates by model
+        improvement_rates = {
+            "fast_model": 0.002,     # Fast learner
+            "accurate_model": 0.0005, # Slow but steady
+            "balanced_model": 0.001   # Moderate
+        }
+        generation_bonus = min(generation * improvement_rates[model], 0.08)
+        
+        # Context-specific success probability (0 = always fail, 1 = reward as calculated)
+        success_prob = {
+            "early": {"fast_model": 0.9, "accurate_model": 0.6, "balanced_model": 0.8},
+            "mid": {"fast_model": 0.8, "accurate_model": 0.85, "balanced_model": 0.9},
+            "late": {"fast_model": 0.7, "accurate_model": 0.9, "balanced_model": 0.85},
+            "stuck": {"fast_model": 0.4, "accurate_model": 0.95, "balanced_model": 0.6}
+        }.get(context, {}).get(model, 0.8)
+        
+        if self.rng.random() > success_prob:
+            return 0.1  # Failure case
+        
+        result = base * multiplier + noise + generation_bonus
+        return np.clip(result, 0.0, 1.0)
     
     def detect_context(self, generation: int, total_generations: int) -> str:
         """Simple context detection for simulation."""
