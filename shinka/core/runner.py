@@ -671,6 +671,63 @@ class EvolutionRunner:
         # Update context-aware bandit if using thompson_context
         if isinstance(self.llm_selection, ContextAwareThompsonSamplingBandit):
             self._update_bandit_context()
+    
+    def _update_bandit_context(self):
+        """Update the context for context-aware Thompson sampling bandit."""
+        if not isinstance(self.llm_selection, ContextAwareThompsonSamplingBandit):
+            return
+        
+        # Get evolution state information
+        best_fitness_history = []
+        no_improve_count = 0
+        
+        # Get fitness history from database
+        programs = self.db.get_all_programs()
+        if programs:
+            # Group by generation and get best score per generation
+            gen_best_scores = {}
+            for program in programs:
+                gen = program.generation
+                score = program.combined_score
+                if gen not in gen_best_scores or score > gen_best_scores[gen]:
+                    gen_best_scores[gen] = score
+            
+            # Create ordered fitness history
+            for gen in sorted(gen_best_scores.keys()):
+                best_fitness_history.append(gen_best_scores[gen])
+            
+            # Calculate no-improvement steps
+            if len(best_fitness_history) >= 2:
+                current_best = max(best_fitness_history)
+                for i in range(len(best_fitness_history) - 1, -1, -1):
+                    if best_fitness_history[i] < current_best:
+                        no_improve_count = len(best_fitness_history) - 1 - i
+                        break
+        
+        # Calculate population diversity (simple approximation)
+        population_diversity = None
+        if len(programs) > 1:
+            # Simple diversity measure: variance of scores normalized
+            scores = [p.combined_score for p in programs[-20:]]  # Recent programs
+            if len(scores) > 1:
+                score_variance = np.var(scores)
+                score_range = max(scores) - min(scores) if max(scores) != min(scores) else 1
+                population_diversity = min(score_variance / (score_range ** 2), 1.0)
+        
+        # Update context in bandit
+        new_context = self.llm_selection.update_context(
+            generation=self.completed_generations,
+            total_generations=self.evo_config.num_generations,
+            no_improve_steps=no_improve_count,
+            best_fitness_history=best_fitness_history,
+            population_diversity=population_diversity
+        )
+        
+        if self.verbose:
+            logger.debug(
+                f"Updated context-aware bandit: {self.completed_generations}/{self.evo_config.num_generations} "
+                f"→ {new_context} (no_improve: {no_improve_count}, diversity: {population_diversity:.3f if population_diversity else 'N/A'})"
+            )
 
     def _update_bandit_context(self):
         """Update the context for context-aware Thompson sampling bandit."""
