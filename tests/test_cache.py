@@ -87,16 +87,18 @@ class TestLLMCache(unittest.TestCase):
         
         self.cache = LLMCache(self.config)
         
-        # Mock QueryResult for testing
-        self.mock_result = Mock(spec=QueryResult)
-        self.mock_result.content = "Test response"
-        self.mock_result.cost = 0.05
-        self.mock_result.model_name = "gpt-4"
-        self.mock_result.to_dict.return_value = {
-            "content": "Test response",
-            "cost": 0.05,
-            "model_name": "gpt-4"
-        }
+        # Create real QueryResult for testing
+        self.mock_result = QueryResult(
+            content="Test response",
+            msg="Test query",
+            system_msg="System message", 
+            new_msg_history=[],
+            model_name="gpt-4",
+            kwargs={"temperature": 0.7},
+            input_tokens=10,
+            output_tokens=15,
+            cost=0.05
+        )
     
     def tearDown(self):
         """Clean up test environment."""
