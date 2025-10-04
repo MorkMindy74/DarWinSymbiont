@@ -847,8 +847,8 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
 
 
 def generate_plots(output_dir: str = "reports/context_bandit"):
-    """Generate visualization plots."""
-    logger.info("Generating plots...")
+    """Generate comprehensive visualization plots."""
+    logger.info("Generating extended plots...")
     
     raw_dir = Path(output_dir) / "raw"
     plots_dir = Path(output_dir) / "plots"
@@ -857,6 +857,11 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
     # Set style
     plt.style.use('default')
     sns.set_palette("husl")
+    
+    # Collect data for all plots
+    plot_data = []
+    auc_data = []
+    time_data = []
     
     # 1. Fitness vs Steps plot
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
