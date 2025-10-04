@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""
+ShinkaEvolve Agent Archive CLI
+
+Commands:
+- shinka_archive list
+- shinka_archive show <id>
+- shinka_archive export <id> [-o output.zip]
+- shinka_archive import <zip>
+"""
+
+import sys
+sys.path.insert(0, '/app')
+
+from cli.archive import main_archive
+
+if __name__ == '__main__':
+    sys.exit(main_archive())
