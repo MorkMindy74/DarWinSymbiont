@@ -26,7 +26,7 @@ import pickle
 import threading
 from datetime import datetime, timedelta
 
-from ..models import QueryResult
+from .models import QueryResult
 
 logger = logging.getLogger(__name__)
 
