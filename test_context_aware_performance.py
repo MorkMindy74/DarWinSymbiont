@@ -109,11 +109,19 @@ class EvolutionSimulator:
     
     def update_fitness_history(self, reward: float):
         """Update fitness tracking."""
-        if reward > self.current_best:
-            self.current_best = reward
+        # Apply fitness plateau and diminishing returns
+        improvement_threshold = self.current_best * 1.01  # Need 1% improvement
+        
+        if reward > improvement_threshold:
+            self.current_best = min(reward, self.current_best + 0.05)  # Max 5% jump
             self.no_improve_steps = 0
         else:
             self.no_improve_steps += 1
+        
+        # Apply some fitness decay if stuck too long (represents exploration difficulties)
+        if self.no_improve_steps > 20:
+            decay_factor = 0.999  # Very slow decay
+            self.current_best *= decay_factor
         
         self.best_fitness_history.append(self.current_best)
 
