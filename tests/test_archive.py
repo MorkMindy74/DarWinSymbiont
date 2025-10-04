@@ -617,7 +617,11 @@ index 1234567..abcdefg 100644
                 "budget_steps": 1000
             }
             
-            with patch('pathlib.Path.exists', return_value=False):
+            with patch('pathlib.Path.exists', return_value=False), \
+                 patch('subprocess.run') as mock_subprocess:
+                # Mock subprocess calls to speed up test
+                mock_subprocess.return_value = MagicMock(returncode=0, stdout="[]", stderr="")
+                
                 agent_id = archive.save_agent(config)
             
             manifest = archive.get_agent_manifest(agent_id)
