@@ -1,10 +1,13 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Sequence, List, Any
+from typing import Optional, Union, Sequence, List, Any, Dict
 from scipy.special import logsumexp
 from rich.table import Table
 from rich.console import Console
 import rich.box
+import logging
+
+logger = logging.getLogger(__name__)
 
 Arm = Union[int, str]
 Subset = Optional[Union[np.ndarray, Sequence[Arm]]]
