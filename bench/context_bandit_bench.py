@@ -315,6 +315,12 @@ class EvolutionSimulator:
         self.time_to_first_improve = None
         self.context_history = []
         
+        # Parse hyperparameters
+        hyperparam_parts = config.hyperparams.split(',')
+        prior_alpha = float(hyperparam_parts[0]) if len(hyperparam_parts) > 0 else 2.0
+        prior_beta = float(hyperparam_parts[1]) if len(hyperparam_parts) > 1 else 1.0
+        auto_decay = float(hyperparam_parts[2]) if len(hyperparam_parts) > 2 else 0.99
+        
         # Initialize bandit based on algorithm type
         models = ["fast_model", "accurate_model", "balanced_model"]
         
