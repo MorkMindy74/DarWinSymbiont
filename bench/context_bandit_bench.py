@@ -51,6 +51,47 @@ class MockLLMScorer:
         self.rng = np.random.RandomState(seed)
         self.query_count = 0
         
+        # Initialize problem-specific data
+        if problem_type == "tsp":
+            self._init_tsp_berlin52()
+        elif problem_type == "toy":
+            self._init_hard_toy()
+        elif problem_type == "synthetic":
+            self._init_hard_synthetic()
+    
+    def _init_tsp_berlin52(self):
+        """Initialize Berlin52 TSP coordinates (TSPLIB format)."""
+        # Berlin52 coordinates from TSPLIB (first 50 cities for consistency)
+        self.berlin52_coords = np.array([
+            [565.0, 575.0], [25.0, 185.0], [345.0, 750.0], [945.0, 685.0], [845.0, 655.0],
+            [880.0, 660.0], [25.0, 230.0], [525.0, 1000.0], [580.0, 1175.0], [650.0, 1130.0],
+            [1605.0, 620.0], [1220.0, 580.0], [1465.0, 200.0], [1530.0, 5.0], [845.0, 680.0],
+            [725.0, 370.0], [145.0, 665.0], [415.0, 635.0], [510.0, 875.0], [560.0, 365.0],
+            [300.0, 465.0], [520.0, 585.0], [480.0, 415.0], [835.0, 625.0], [975.0, 580.0],
+            [1215.0, 245.0], [1320.0, 315.0], [1250.0, 400.0], [660.0, 180.0], [410.0, 250.0],
+            [420.0, 555.0], [575.0, 665.0], [1150.0, 1160.0], [700.0, 580.0], [685.0, 595.0],
+            [685.0, 610.0], [770.0, 610.0], [795.0, 645.0], [720.0, 635.0], [760.0, 650.0],
+            [475.0, 960.0], [95.0, 260.0], [875.0, 920.0], [700.0, 500.0], [555.0, 815.0],
+            [830.0, 485.0], [1170.0, 65.0], [830.0, 610.0], [605.0, 625.0], [595.0, 360.0]
+        ])
+        # Known optimal tour length for Berlin52 (first 50 cities approximation)
+        self.optimal_tour_length = 7544.0
+        
+    def _init_hard_toy(self):
+        """Initialize hard multi-modal toy function with plateaux."""
+        self.toy_peaks = [
+            {'center': np.array([2.0, 2.0]), 'height': 1.0, 'width': 0.8},
+            {'center': np.array([-1.5, 1.0]), 'height': 0.85, 'width': 0.6},
+            {'center': np.array([1.0, -2.0]), 'height': 0.7, 'width': 0.7},
+            {'center': np.array([-2.0, -1.5]), 'height': 0.6, 'width': 0.5},
+            {'center': np.array([0.0, 0.0]), 'height': 0.4, 'width': 1.2}  # Wide plateau
+        ]
+        
+    def _init_hard_synthetic(self):
+        """Initialize hard synthetic function with constraints and penalties."""
+        self.previous_solutions = []
+        self.penalty_window = 10  # Track last 10 solutions for repetition penalty
+        
     def score_solution(self, solution: np.ndarray, context_info: Dict = None) -> float:
         """Score a solution based on problem type."""
         self.query_count += 1
