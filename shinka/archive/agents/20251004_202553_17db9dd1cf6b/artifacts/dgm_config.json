@@ -1,0 +1,6 @@
+{
+  "dgm_benchmark": "dgm_swe",
+  "dgm_model": "mock",
+  "dgm_budget": 20,
+  "dgm_integration_version": "1.0"
+}

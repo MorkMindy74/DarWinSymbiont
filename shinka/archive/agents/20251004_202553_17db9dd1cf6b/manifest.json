@@ -1,0 +1,153 @@
+{
+  "agent_id": "17db9dd1cf6b",
+  "parent_id": null,
+  "timestamp": "2025-10-04T20:25:53.021982",
+  "git_commit": "3cd834d74d2912636493b77ffc14c985925d7afa",
+  "branch": "main",
+  "dirty": false,
+  "env": {
+    "python": "3.11.13",
+    "os": "Linux",
+    "platform": "Linux-6.6.93+-aarch64-with-glibc2.36",
+    "machine": "aarch64",
+    "dependencies_lock": "8971cb07d52cece5"
+  },
+  "seeds": {
+    "global": 42,
+    "numpy": 42,
+    "torch": 42
+  },
+  "evo_config_path": "inline",
+  "evo_config_inline": {
+    "algorithm": "context",
+    "benchmark": "dgm_swe",
+    "seed": 42,
+    "budget_steps": 20,
+    "model": "mock",
+    "dgm_integration": true
+  },
+  "hyperparams": {
+    "bandit": "context",
+    "prior_alpha": 2.0,
+    "prior_beta": 1.0,
+    "decay": 0.99,
+    "contexts": [
+      "early",
+      "mid",
+      "late",
+      "stuck"
+    ]
+  },
+  "benchmarks": {
+    "toy_benchmark": {
+      "final_best_fitness": 1.0,
+      "auc_fitness": 808.7882,
+      "time_to_first_improve": 0.0,
+      "llm_queries_total": 833.3333,
+      "llm_queries_while_stuck": 756.3333,
+      "variance_ratio_vs_baseline": 1.2280701754385965
+    },
+    "tsp_benchmark": {
+      "final_best_fitness": 0.6509,
+      "auc_fitness": 520.7529,
+      "time_to_first_improve": 5.0,
+      "llm_queries_total": 766.6667,
+      "llm_queries_while_stuck": 676.3333,
+      "variance_ratio_vs_baseline": 1.450980392156863
+    },
+    "synthetic_benchmark": {
+      "final_best_fitness": 1.0,
+      "auc_fitness": 979.8942,
+      "time_to_first_improve": 0.0,
+      "llm_queries_total": 1000.0,
+      "llm_queries_while_stuck": 916.3333,
+      "variance_ratio_vs_baseline": 1.0
+    }
+  },
+  "cost": {
+    "total_usd_est": 0.26,
+    "queries_total": 2600.0
+  },
+  "context_activity": {
+    "switch_count": 2,
+    "dwell_time": {
+      "early": 0.4,
+      "mid": 0.3,
+      "late": 0.3,
+      "stuck": 0.0
+    }
+  },
+  "dgm_compat": {
+    "repo_layout_ref": "ShinkaEvolve structure (shinka/core/runner.py, bench/context_bandit_bench.py, reports/context_bandit/)",
+    "entry_point": "DGM_outer.py",
+    "prompts_dir": "third_party/dgm/prompts/",
+    "tools_dir": "third_party/dgm/tools/",
+    "swe_bench_commit": "3cd834d74d2912636493b77ffc14c985925d7afa",
+    "polyglot_prepared": true,
+    "dgm_submodule_hash": "a565fd2d1dca504ef5104a7cc0f3bdc4ab9b4fd2",
+    "dgm_integration_enabled": true,
+    "adapter_version": "1.0"
+  },
+  "benchmarks_full": {
+    "toy_context_timeseries": "timeseries/context_toy_timeseries.csv",
+    "toy_baseline_timeseries": "timeseries/baseline_toy_timeseries.csv",
+    "tsp_context_timeseries": "timeseries/context_tsp_timeseries.csv",
+    "tsp_baseline_timeseries": "timeseries/baseline_tsp_timeseries.csv",
+    "synthetic_context_timeseries": "timeseries/context_synthetic_timeseries.csv",
+    "synthetic_baseline_timeseries": "timeseries/baseline_synthetic_timeseries.csv"
+  },
+  "complexity_metrics": {
+    "lines_of_code_delta": 0,
+    "cyclomatic_complexity": 3.2,
+    "coupling_between_objects": 2,
+    "code_coverage_pct": 85.0,
+    "technical_debt_ratio": 0.0,
+    "lines_of_code_total": 30700
+  },
+  "validation_levels": {
+    "static_checks": {
+      "ruff": "fail",
+      "mypy": "unknown",
+      "ruff_issues": "parse_error"
+    },
+    "unit_tests": {
+      "status": "unknown",
+      "passed": 0,
+      "failed": 0
+    },
+    "property_based": {
+      "status": "not_implemented"
+    },
+    "fuzz_tests": {
+      "status": "not_implemented"
+    }
+  },
+  "cost_breakdown": {
+    "mock_model": {
+      "queries": 2600.0,
+      "cost_usd": 0.0
+    },
+    "gpt_4o": {
+      "queries": 0,
+      "cost_usd": 78.0
+    },
+    "claude_sonnet": {
+      "queries": 0,
+      "cost_usd": 39.0
+    },
+    "gemini_pro": {
+      "queries": 0,
+      "cost_usd": 2.6
+    }
+  },
+  "artifact_refs": {
+    "benchmark_reports": "artifacts/benchmark_reports",
+    "plots": "artifacts/benchmark_reports/plots",
+    "plot_auc_comparison": "artifacts/benchmark_reports/plots/auc_comparison.png",
+    "plot_time_to_improve_boxplot": "artifacts/benchmark_reports/plots/time_to_improve_boxplot.png",
+    "plot_fitness_curves": "artifacts/benchmark_reports/plots/fitness_curves.png",
+    "plot_stuck_queries": "artifacts/benchmark_reports/plots/stuck_queries.png",
+    "config_snapshot": "artifacts/config_used.yaml",
+    "benchmark_summary": "artifacts/benchmark_reports/summary.csv"
+  }
+}

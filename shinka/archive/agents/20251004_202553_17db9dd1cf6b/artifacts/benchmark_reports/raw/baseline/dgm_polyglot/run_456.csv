@@ -1,0 +1,3 @@
+run_id,algo,benchmark,seed,step,context,fitness,best_fitness,llm_queries,llm_queries_cum,time_ms,gen_progress,no_improve_steps,fitness_slope,pop_diversity,model_used,improvement,dgm_iteration,dgm_type,dgm_live,dgm_success
+baseline_dgm_polyglot_456_1759609128,baseline,dgm_polyglot,456,0,dgm_evolution,0.5308026261313206,0.5308026261313206,1,1,2000,0.0,0,0,0.9,mock,True,0,dgm_polyglot,,
+baseline_dgm_polyglot_456_1759609128,baseline,dgm_polyglot,456,1,dgm_evolution,0.5727507427938697,0.5727507427938697,1,2,2000,0.5,0,0.04194811666254916,0.9,mock,True,1,dgm_polyglot,,

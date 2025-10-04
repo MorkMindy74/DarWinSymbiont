@@ -1,0 +1,6 @@
+algorithm: context
+benchmark: dgm_swe
+budget_steps: 20
+dgm_integration: true
+model: mock
+seed: 42
