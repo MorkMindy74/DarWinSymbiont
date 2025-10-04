@@ -42,7 +42,7 @@ async def create_problem(problem_input: ProblemInput, db: Optional[AsyncIOMotorD
 
 
 @router.get("/{problem_id}", response_model=ProblemWithAnalysis)
-async def get_problem(problem_id: str, db: AsyncIOMotorDatabase = None):
+async def get_problem(problem_id: str, db: Optional[AsyncIOMotorDatabase] = Depends(get_db)):
     """
     Get a problem by ID
     
