@@ -441,7 +441,7 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
                         stuck_queries += df['llm_queries'].iloc[i]
                 
                 # Area under curve
-                auc = np.trapz(df['best_fitness'].values)
+                auc = np.trapezoid(df['best_fitness'].values)
                 
                 result = {
                     'algorithm': algorithm,
