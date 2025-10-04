@@ -184,6 +184,8 @@ class MockLLMScorer:
             return self._tsp_function(solution)
         elif self.problem_type == "synthetic":
             return self._synthetic_function(solution, context_info)
+        elif self.problem_type in ["dgm_swe", "dgm_polyglot"]:
+            return self._dgm_function(solution, context_info)
         else:
             raise ValueError(f"Unknown problem type: {self.problem_type}")
     
