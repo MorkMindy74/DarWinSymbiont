@@ -60,14 +60,11 @@ class ShinkaEvolutionBridge:
             migration_interval=user_config.get("migration_interval", 10),
         )
     
-    def create_job_config(self, user_config: Dict[str, Any]) -> JobConfig:
-        """Create JobConfig from user config"""
-        return JobConfig(
-            job_type="local",
+    def create_job_config(self, user_config: Dict[str, Any]) -> LocalJobConfig:
+        """Create LocalJobConfig from user config"""
+        return LocalJobConfig(
             eval_program_path=str(self.eval_program_path),
             time="00:10:00",  # 10 minutes timeout
-            cpus_per_task=1,
-            partition=None,
         )
     
     def save_program(self, filename: str, code: str):
