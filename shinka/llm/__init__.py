@@ -5,6 +5,7 @@ from .dynamic_sampling import (
     BanditBase,
     AsymmetricUCB,
     ThompsonSamplingBandit,
+    ContextAwareThompsonSamplingBandit,
     FixedSampler,
 )
 from .cache import (
