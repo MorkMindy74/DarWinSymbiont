@@ -79,8 +79,13 @@ class TestContextDetection(unittest.TestCase):
     
     def test_stuck_context_detection(self):
         """Test stuck phase detection."""
+        # Add samples first
+        for _ in range(10):
+            self.bandit.update_submitted("gpt-4")
+            self.bandit.update("gpt-4", reward=0.7, baseline=0.5)
+        
         # Stuck: no improvement for extended period
-        context = self.bandit._detect_context(
+        context = self.bandit.update_context(
             generation=60,
             total_generations=100,
             no_improve_steps=15,
