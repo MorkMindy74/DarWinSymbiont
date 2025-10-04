@@ -963,7 +963,7 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
         auc_df = pd.DataFrame(auc_data)
         
         plt.figure(figsize=(12, 8))
-        sns.barplot(data=auc_df, x='benchmark', y='auc', hue='algorithm', ci='sd', capsize=0.1)
+        sns.barplot(data=auc_df, x='benchmark', y='auc', hue='algorithm', errorbar='sd', capsize=0.1)
         plt.title('Area Under Curve (AUC) by Algorithm and Benchmark')
         plt.ylabel('AUC (Best Fitness × Steps)')
         plt.xlabel('Benchmark')
