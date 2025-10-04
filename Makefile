@@ -88,6 +88,7 @@ bench_full_extended:
 	@make bench_ablation
 	@make bench_hyperparam
 	@make bench_cache
+	@make bench_dedup
 	@echo "Generating comprehensive report..."
 	python -m bench.context_bandit_bench --make-report
 	@echo "🎯 FULL EXTENDED BENCHMARK COMPLETE!"
