@@ -443,9 +443,17 @@ class TestCacheIntegration(unittest.TestCase):
         
         mock_results = []
         for i, (msg, sys_msg) in enumerate(common_queries):
-            mock_result = Mock(spec=QueryResult)
-            mock_result.content = f"Response {i}"
-            mock_result.cost = 0.05
+            mock_result = QueryResult(
+                content=f"Response {i}",
+                msg=msg,
+                system_msg=sys_msg,
+                new_msg_history=[],
+                model_name="gpt-4",
+                kwargs={},
+                input_tokens=10,
+                output_tokens=15,
+                cost=0.05
+            )
             mock_results.append(mock_result)
         
         # First round - all cache misses
