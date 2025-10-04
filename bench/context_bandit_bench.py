@@ -619,13 +619,15 @@ def run_single_benchmark(config: BenchmarkConfig) -> Dict[str, Any]:
 
 
 def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any]:
-    """Analyze benchmark results and generate report."""
+    """Analyze benchmark results and generate comprehensive report."""
     logger.info("Analyzing benchmark results...")
     
     raw_dir = Path(output_dir) / "raw"
     
-    # Collect all results
+    # Collect all detailed results
     all_results = []
+    context_switch_data = []
+    oscillation_data = []
     
     for algo_dir in raw_dir.iterdir():
         if not algo_dir.is_dir():
