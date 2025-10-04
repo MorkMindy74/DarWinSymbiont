@@ -156,6 +156,7 @@ help:
 	@echo "  test_context      - Run context-aware bandit unit tests"
 	@echo "  test_archive      - Run agent archive system tests"
 	@echo "  archive_sanity    - Archive system sanity check"
+	@echo "  regression_test   - Run regression test against archived agents"
 	@echo "  bench_quick       - Quick benchmark (CI-friendly, 300 steps)"
 	@echo "  bench_context     - Complete benchmark matrix (5 algos × 5 seeds × 3 benchmarks)"
 	@echo "  bench_ablation    - Feature ablation study"
