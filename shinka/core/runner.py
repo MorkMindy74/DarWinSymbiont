@@ -3,6 +3,7 @@ import uuid
 import time
 import logging
 import yaml
+import numpy as np
 from rich.logging import RichHandler
 from rich.table import Table
 from rich.console import Console
