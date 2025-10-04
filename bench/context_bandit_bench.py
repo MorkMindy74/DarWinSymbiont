@@ -101,6 +101,7 @@ class BenchmarkConfig:
     output_dir: str = "reports/context_bandit/raw"
     ablation: str = "none"
     hyperparams: str = "2.0,1.0,0.99"
+    cache: str = "off"
 
 
 class MockLLMScorer:
