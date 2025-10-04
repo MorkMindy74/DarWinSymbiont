@@ -189,7 +189,7 @@ class ShinkaEvolutionBridge:
         if not self.db_path.exists():
             return None
         
-        conn = sqlite3.connect(str(self.db_path))
+        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         cursor = conn.execute("""
             SELECT id, generation, island_id, code, metrics
             FROM programs
