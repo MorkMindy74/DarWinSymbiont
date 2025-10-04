@@ -1,4 +1,28 @@
 backend:
+  - task: "EMERGENT Platform API - Problem Creation"
+    implemented: true
+    working: "pending"
+    file: "backend/routes/problem.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "pending"
+        agent: "main"
+        comment: "New API endpoint for creating problems. Backend server running on localhost:8001. Need to test POST /api/problem/create"
+        
+  - task: "EMERGENT Platform API - Problem Analysis"
+    implemented: true
+    working: "pending"
+    file: "backend/routes/analysis.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "pending"
+        agent: "main"
+        comment: "New API endpoint for analyzing problems with LLM. Need to test POST /api/analysis/analyze/{problem_id}"
+
   - task: "Core imports functionality"
     implemented: true
     working: true
