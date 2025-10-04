@@ -15,5 +15,6 @@ __all__ = [
     "EmbeddingClient",
     "BanditBase",
     "AsymmetricUCB",
+    "ThompsonSamplingBandit",
     "FixedSampler",
 ]
