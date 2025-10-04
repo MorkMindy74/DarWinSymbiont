@@ -761,33 +761,77 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
     summary_file = Path(output_dir) / "summary.csv"
     aggregated.to_csv(summary_file)
     
-    # Calculate acceptance criteria
+    # Calculate comprehensive acceptance criteria with explicit deltas
     acceptance_results = {}
+    delta_results = {}
     
+    # Calculate deltas vs baseline for all algorithms
     for benchmark in results_df['benchmark'].unique():
         bench_df = results_df[results_df['benchmark'] == benchmark]
         
-        if 'baseline' in bench_df['algorithm'].values and 'context' in bench_df['algorithm'].values:
-            baseline_fitness = bench_df[bench_df['algorithm'] == 'baseline']['final_fitness'].mean()
-            context_fitness = bench_df[bench_df['algorithm'] == 'context']['final_fitness'].mean()
+        if 'baseline' not in bench_df['algorithm'].values:
+            continue
+        
+        # Get baseline metrics
+        baseline_df = bench_df[bench_df['algorithm'] == 'baseline']
+        baseline_fitness = baseline_df['final_fitness'].mean()
+        baseline_auc = baseline_df['area_under_curve'].mean()
+        baseline_stuck = baseline_df['llm_queries_while_stuck'].mean()
+        baseline_time = baseline_df['time_to_first_improve'].median()
+        baseline_variance = baseline_df['fitness_variance'].mean()
+        
+        delta_results[benchmark] = {}
+        
+        for algorithm in bench_df['algorithm'].unique():
+            if algorithm == 'baseline':
+                continue
+                
+            algo_df = bench_df[bench_df['algorithm'] == algorithm]
             
-            baseline_stuck = bench_df[bench_df['algorithm'] == 'baseline']['llm_queries_while_stuck'].mean()
-            context_stuck = bench_df[bench_df['algorithm'] == 'context']['llm_queries_while_stuck'].mean()
+            # Calculate explicit deltas
+            fitness_delta = ((algo_df['final_fitness'].mean() - baseline_fitness) / baseline_fitness) * 100 if baseline_fitness > 0 else 0
+            auc_delta = ((algo_df['area_under_curve'].mean() - baseline_auc) / baseline_auc) * 100 if baseline_auc > 0 else 0
+            stuck_queries_delta = ((baseline_stuck - algo_df['llm_queries_while_stuck'].mean()) / baseline_stuck) * 100 if baseline_stuck > 0 else 0
+            time_delta = ((baseline_time - algo_df['time_to_first_improve'].median()) / baseline_time) * 100 if baseline_time > 0 else 0
+            variance_ratio = (algo_df['fitness_variance'].mean() / baseline_variance) if baseline_variance > 0 else 1.0
             
-            baseline_time = bench_df[bench_df['algorithm'] == 'baseline']['time_to_first_improve'].median()
-            context_time = bench_df[bench_df['algorithm'] == 'context']['time_to_first_improve'].median()
+            delta_results[benchmark][algorithm] = {
+                'final_fitness_delta_pct': fitness_delta,
+                'auc_delta_pct': auc_delta,
+                'stuck_queries_reduction_pct': stuck_queries_delta,
+                'time_to_improve_reduction_pct': time_delta,
+                'variance_ratio': variance_ratio,
+                'context_switches_avg': algo_df['context_switches'].mean(),
+                'oscillation_avg': algo_df['oscillation_count'].mean()
+            }
+        
+        # Context-specific acceptance criteria
+        if 'context' in bench_df['algorithm'].values:
+            context_metrics = delta_results[benchmark].get('context', {})
             
-            # Calculate improvements
-            fitness_improvement = ((context_fitness - baseline_fitness) / baseline_fitness) * 100
-            stuck_queries_reduction = ((baseline_stuck - context_stuck) / baseline_stuck) * 100 if baseline_stuck > 0 else 0
-            time_reduction = ((baseline_time - context_time) / baseline_time) * 100 if baseline_time and context_time else 0
+            # PASS/FAIL criteria (immutable)
+            efficacy_fitness_pass = context_metrics.get('final_fitness_delta_pct', 0) >= 3.0
+            efficacy_auc_pass = context_metrics.get('auc_delta_pct', 0) >= 3.0
+            
+            # For TSP and at least 1 of TOY/SYNTHETIC hard
+            efficacy_pass = False
+            if benchmark == 'tsp':
+                efficacy_pass = efficacy_fitness_pass and efficacy_auc_pass
+            elif benchmark in ['toy', 'synthetic']:
+                efficacy_pass = efficacy_fitness_pass or efficacy_auc_pass
+            
+            efficiency_stuck_pass = context_metrics.get('stuck_queries_reduction_pct', 0) >= 10.0
+            efficiency_time_pass = context_metrics.get('time_to_improve_reduction_pct', 0) >= 10.0
+            efficiency_pass = efficiency_stuck_pass or efficiency_time_pass
+            
+            stability_pass = context_metrics.get('variance_ratio', 999) <= 2.0
             
             acceptance_results[benchmark] = {
-                'fitness_improvement_pct': fitness_improvement,
-                'stuck_queries_reduction_pct': stuck_queries_reduction, 
-                'time_to_improve_reduction_pct': time_reduction,
-                'fitness_pass': fitness_improvement >= 3.0,
-                'stuck_pass': stuck_queries_reduction >= 10.0 or time_reduction >= 10.0
+                'efficacy_pass': efficacy_pass,
+                'efficiency_pass': efficiency_pass,
+                'stability_pass': stability_pass,
+                'overall_pass': efficacy_pass and efficiency_pass and stability_pass,
+                'metrics': context_metrics
             }
     
     logger.info(f"Analysis complete. Summary saved to {summary_file}")
