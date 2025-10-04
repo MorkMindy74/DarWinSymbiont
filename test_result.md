@@ -254,15 +254,18 @@ frontend:
         
   - task: "EMERGENT Platform UI - Evolution Dashboard"
     implemented: true
-    working: "pending"
+    working: false
     file: "frontend/src/pages/EvolutionDashboard.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "pending"
         agent: "main"
         comment: "Real-time evolution dashboard with WebSocket. Components: MetricsBar, FitnessChart, IslandMap, LiveFeed. Needs full E2E testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: Evolution Dashboard UI loads correctly but evolution fails to start due to SQLite threading error. Complete E2E flow tested successfully through: (1) Home page navigation ✅, (2) Problem creation form ✅, (3) Analysis page with Start Evolution button ✅, (4) Evolution dashboard initialization ✅, (5) WebSocket connection ✅. However, evolution fails immediately with 'SQLite objects created in a thread can only be used in that same thread' error. Dashboard shows all components (MetricsBar with 4 metrics, FitnessChart, IslandMap, LiveFeed) but remains in 'Connected - Waiting' state with Generation=0, no live feed messages, no islands. Navigation and state persistence work correctly. Frontend implementation is solid - issue is backend SQLite threading in ShinkaEvolve integration."
 
 metadata:
   created_by: "testing_agent"
