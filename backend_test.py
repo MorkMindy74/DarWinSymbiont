@@ -314,70 +314,22 @@ class EmergentAPITester:
         
         return results
 
-def run_all_tests():
-    """Run all backend tests and return results"""
-    logger.info("Starting ShinkaEvolve backend test suite...")
-    
-    tests = [
-        ("Core imports functionality", test_core_imports),
-        ("Thompson Sampling basic functionality", test_thompson_sampling_basic),
-        ("Context-Aware functionality", test_context_aware_functionality),
-        ("Benchmark harness integration", test_benchmark_harness_integration),
-        ("Complete minimal benchmark run", test_complete_minimal_benchmark)
-    ]
-    
-    results = {}
-    
-    for test_name, test_func in tests:
-        logger.info(f"\n{'='*60}")
-        logger.info(f"Running: {test_name}")
-        logger.info(f"{'='*60}")
+
+async def main():
+    """Main test runner"""
+    async with EmergentAPITester(BACKEND_URL) as tester:
+        results = await tester.run_all_tests()
         
-        try:
-            success, message = test_func()
-            results[test_name] = {
-                'success': success,
-                'message': message
-            }
-            
-            if success:
-                logger.info(f"✅ PASSED: {test_name}")
-            else:
-                logger.error(f"❌ FAILED: {test_name} - {message}")
-                
-        except Exception as e:
-            logger.error(f"❌ ERROR: {test_name} - {e}")
-            results[test_name] = {
-                'success': False,
-                'message': f"Unexpected error: {e}"
-            }
-    
-    # Summary
-    logger.info(f"\n{'='*60}")
-    logger.info("TEST SUMMARY")
-    logger.info(f"{'='*60}")
-    
-    passed = sum(1 for r in results.values() if r['success'])
-    total = len(results)
-    
-    for test_name, result in results.items():
-        status = "✅ PASS" if result['success'] else "❌ FAIL"
-        logger.info(f"{status}: {test_name}")
-        if not result['success']:
-            logger.info(f"    Error: {result['message']}")
-    
-    logger.info(f"\nOverall: {passed}/{total} tests passed")
-    
-    return results
+        # Exit with error code if any tests failed
+        failed_tests = [name for name, result in results.items() if not result['success']]
+        if failed_tests:
+            logger.error(f"Failed tests: {failed_tests}")
+            return False
+        else:
+            logger.info("All tests passed!")
+            return True
+
 
 if __name__ == "__main__":
-    results = run_all_tests()
-    
-    # Exit with error code if any tests failed
-    failed_tests = [name for name, result in results.items() if not result['success']]
-    if failed_tests:
-        logger.error(f"Failed tests: {failed_tests}")
-        sys.exit(1)
-    else:
-        logger.info("All tests passed!")
-        sys.exit(0)
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)
