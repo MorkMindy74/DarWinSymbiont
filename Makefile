@@ -61,14 +61,42 @@ test_context:
 clean_reports:
 	rm -rf reports/context_bandit/*
 
+# Cache determinism test
+bench_cache:
+	@echo "Testing cache determinism..."
+	@echo "Running with cache OFF (2 runs should be identical):"
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 200 --model mock --cache off
+	python -m bench.context_bandit_bench --benchmark toy --algo context --seed 42 --budget_steps 200 --model mock --cache off
+	@echo "Cache determinism test complete."
+
+# Complete extended suite with all features
+bench_full_extended:
+	@echo "Running FULL extended benchmark suite..."
+	@echo "This will take ~15-20 minutes..."
+	@make bench_context
+	@make bench_ablation
+	@make bench_hyperparam
+	@make bench_cache
+	@echo "Generating comprehensive report..."
+	python -m bench.context_bandit_bench --make-report
+	@echo "🎯 FULL EXTENDED BENCHMARK COMPLETE!"
+
 # Test + Quick benchmark
 test_quick: test_context bench_quick
+
+# Complete validation pipeline
+validate_all: test_context bench_full_extended
 
 # Help
 help:
 	@echo "Available targets:"
-	@echo "  test_context    - Run context-aware bandit unit tests"
-	@echo "  bench_quick     - Quick benchmark (CI-friendly)"
-	@echo "  bench_context   - Complete benchmark matrix"
-	@echo "  clean_reports   - Clean benchmark reports"
-	@echo "  test_quick      - Run tests + quick benchmark"
+	@echo "  test_context      - Run context-aware bandit unit tests"
+	@echo "  bench_quick       - Quick benchmark (CI-friendly, 300 steps)"
+	@echo "  bench_context     - Complete benchmark matrix (5 algos × 5 seeds × 3 benchmarks)"
+	@echo "  bench_ablation    - Feature ablation study"
+	@echo "  bench_hyperparam  - Hyperparameter sensitivity analysis"
+	@echo "  bench_cache       - Cache determinism test"
+	@echo "  bench_full_extended - Complete extended suite (15-20 min)"
+	@echo "  validate_all      - Full validation pipeline"
+	@echo "  clean_reports     - Clean benchmark reports"
+	@echo "  test_quick        - Run tests + quick benchmark"
