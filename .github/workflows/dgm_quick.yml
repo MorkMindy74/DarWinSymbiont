@@ -1,0 +1,252 @@
+name: DGM Integration Quick Test
+
+on:
+  schedule:
+    # Run nightly at 3 AM UTC (after regression tests)
+    - cron: '0 3 * * *'
+  workflow_dispatch:  # Allow manual trigger
+    inputs:
+      benchmark_type:
+        description: 'DGM benchmark to run'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - swe_bench
+          - polyglot
+      budget_steps:
+        description: 'Number of steps for benchmark'
+        required: false
+        default: '200'
+      use_live_models:
+        description: 'Use live API models (requires secrets)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  dgm-integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout repository with submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest matplotlib seaborn pandas numpy pyyaml docker-compose
+        
+    - name: Initialize DGM submodule
+      run: |
+        echo "Checking DGM submodule status..."
+        if [ ! -f "third_party/dgm/DGM_outer.py" ]; then
+          echo "Initializing DGM submodule..."
+          git submodule update --init --recursive third_party/dgm
+        else
+          echo "✅ DGM submodule already initialized"
+        fi
+        
+        echo "DGM submodule info:"
+        ls -la third_party/dgm/
+        head -5 third_party/dgm/README.md || echo "No README found"
+        
+    - name: Test DGM integration components
+      run: |
+        echo "Testing DGM adapter imports..."
+        python -c "
+        try:
+            from adapters.dgm_runner import DGMConfig, DGMRunner
+            print('✅ DGM adapter imports successfully')
+        except ImportError as e:
+            print(f'❌ DGM adapter import failed: {e}')
+            exit(1)
+        "
+        
+        echo "Testing DGM Docker environment..."
+        docker-compose -f docker-compose.dgm.yml config || echo "Docker compose config issues detected"
+        
+    - name: Run DGM quick benchmarks (mock mode)
+      run: |
+        echo "Running DGM SWE-bench benchmark (mock)..."
+        python -m bench.context_bandit_bench \
+          --benchmark dgm_swe \
+          --algo context \
+          --seed 42 \
+          --budget_steps ${{ github.event.inputs.budget_steps || '200' }} \
+          --model mock
+        
+        echo "Running DGM Polyglot benchmark (mock)..."
+        python -m bench.context_bandit_bench \
+          --benchmark dgm_polyglot \
+          --algo baseline \
+          --seed 42 \
+          --budget_steps ${{ github.event.inputs.budget_steps || '200' }} \
+          --model mock
+        
+    - name: Run DGM with live models (if enabled)
+      if: ${{ github.event.inputs.use_live_models == 'true' && (secrets.OPENAI_API_KEY || secrets.ANTHROPIC_API_KEY) }}
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "Running DGM with live models..."
+        # Shorter run for live models to avoid costs
+        python -m bench.context_bandit_bench \
+          --benchmark dgm_swe \
+          --algo context \
+          --seed 42 \
+          --budget_steps 20 \
+          --model gpt-4o
+          
+    - name: Validate DGM outputs
+      run: |
+        echo "Checking DGM benchmark outputs..."
+        
+        # Check if CSV files were generated
+        find reports/context_bandit/raw -name "*.csv" -type f | head -5
+        echo "CSV files found: $(find reports/context_bandit/raw -name "*.csv" -type f | wc -l)"
+        
+        # Check DGM-specific artifacts
+        if [ -d "reports/dgm" ]; then
+          echo "DGM artifacts directory exists:"
+          ls -la reports/dgm/
+          
+          # Validate DGM artifacts structure
+          find reports/dgm -type f | head -10
+        else
+          echo "No DGM artifacts directory (expected for mock mode)"
+        fi
+        
+        # Validate CSV content
+        if [ -f "reports/context_bandit/raw/context/dgm_swe/run_42.csv" ]; then
+          echo "DGM SWE-bench CSV content sample:"
+          head -3 "reports/context_bandit/raw/context/dgm_swe/run_42.csv"
+        fi
+        
+    - name: Test AgentArchive DGM compatibility
+      run: |
+        echo "Testing AgentArchive DGM integration..."
+        python -c "
+        import sys
+        sys.path.insert(0, '/app')
+        from shinka.archive import create_agent_archive
+        
+        # Create test agent with DGM config
+        archive = create_agent_archive()
+        config = {
+            'algorithm': 'context',
+            'benchmark': 'dgm_swe',
+            'seed': 42,
+            'budget_steps': 200,
+            'model': 'mock',
+            'dgm_integration_test': True
+        }
+        
+        agent_id = archive.save_agent(config)
+        print(f'✅ DGM agent archived: {agent_id}')
+        
+        # Verify DGM metadata
+        manifest = archive.get_agent_manifest(agent_id)
+        if manifest and 'dgm_compat' in manifest.to_dict():
+            dgm_compat = manifest.dgm_compat
+            print(f'✅ DGM compatibility metadata present')
+            print(f'   Entry point: {dgm_compat.get(\"entry_point\", \"unknown\")}')
+            print(f'   Integration enabled: {dgm_compat.get(\"dgm_integration_enabled\", False)}')
+            print(f'   Submodule hash: {dgm_compat.get(\"dgm_submodule_hash\", \"unknown\")}')
+        else:
+            print('❌ DGM compatibility metadata missing')
+            sys.exit(1)
+        "
+        
+    - name: Generate test summary
+      if: always()
+      run: |
+        echo "## DGM Integration Test Summary" > dgm_test_summary.md
+        echo "" >> dgm_test_summary.md
+        echo "**Date:** $(date -u)" >> dgm_test_summary.md
+        echo "**Workflow:** [${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> dgm_test_summary.md
+        echo "" >> dgm_test_summary.md
+        
+        # Check benchmark results
+        if [ -f "reports/context_bandit/raw/context/dgm_swe/run_42.csv" ]; then
+          lines=$(wc -l < "reports/context_bandit/raw/context/dgm_swe/run_42.csv")
+          echo "- ✅ DGM SWE-bench: $((lines-1)) data points generated" >> dgm_test_summary.md
+        else
+          echo "- ❌ DGM SWE-bench: No CSV output found" >> dgm_test_summary.md
+        fi
+        
+        if [ -f "reports/context_bandit/raw/baseline/dgm_polyglot/run_42.csv" ]; then
+          lines=$(wc -l < "reports/context_bandit/raw/baseline/dgm_polyglot/run_42.csv")
+          echo "- ✅ DGM Polyglot: $((lines-1)) data points generated" >> dgm_test_summary.md
+        else
+          echo "- ❌ DGM Polyglot: No CSV output found" >> dgm_test_summary.md
+        fi
+        
+        # Check DGM submodule
+        if [ -f "third_party/dgm/DGM_outer.py" ]; then
+          echo "- ✅ DGM submodule: Available and accessible" >> dgm_test_summary.md
+        else
+          echo "- ❌ DGM submodule: Missing or inaccessible" >> dgm_test_summary.md
+        fi
+        
+        # Check AgentArchive integration
+        if grep -q "dgm_integration_enabled" shinka/archive/agent_archive.py; then
+          echo "- ✅ AgentArchive: DGM compatibility metadata implemented" >> dgm_test_summary.md
+        else
+          echo "- ❌ AgentArchive: DGM compatibility missing" >> dgm_test_summary.md
+        fi
+        
+        echo "" >> dgm_test_summary.md
+        echo "### Artifacts Generated" >> dgm_test_summary.md
+        echo "\`\`\`" >> dgm_test_summary.md
+        find reports -name "*dgm*" -type f 2>/dev/null | head -10 >> dgm_test_summary.md || echo "No DGM artifacts found" >> dgm_test_summary.md
+        echo "\`\`\`" >> dgm_test_summary.md
+        
+        cat dgm_test_summary.md
+        
+    - name: Upload DGM test artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: dgm-test-results
+        path: |
+          reports/dgm/
+          reports/context_bandit/raw/*/dgm_*/
+          dgm_test_summary.md
+          shinka/archive/agents/*/artifacts/dgm_*
+        retention-days: 7
+        
+    - name: Check for DGM test failures
+      if: failure()
+      run: |
+        echo "❌ DGM integration test failed"
+        echo "Checking logs for error patterns..."
+        
+        # Common failure patterns
+        if grep -i "docker.*not found\|permission denied" /tmp/*.log 2>/dev/null; then
+          echo "💡 Docker-related issues detected"
+        fi
+        
+        if grep -i "submodule.*failed\|git.*error" /tmp/*.log 2>/dev/null; then
+          echo "💡 Git submodule issues detected"
+        fi
+        
+        if grep -i "import.*error\|module.*not found" /tmp/*.log 2>/dev/null; then
+          echo "💡 Python import issues detected"
+        fi
+        
+        echo "See artifacts for detailed logs and outputs"
