@@ -70,7 +70,7 @@ async def get_analysis(problem_id: str, db: Optional[AsyncIOMotorDatabase] = Dep
     Returns:
         Problem analysis
     """
-    if not db:
+    if db is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database not configured"
@@ -107,7 +107,7 @@ async def generate_code(
     Returns:
         Generated code
     """
-    if not db:
+    if db is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database not configured"
