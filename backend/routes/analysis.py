@@ -3,8 +3,13 @@ Analysis routes
 """
 from fastapi import APIRouter, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from backend.models.problem import ProblemAnalysis, ProblemInput
-from backend.services.analysis_service import AnalysisService
+
+try:
+    from ..models.problem import ProblemAnalysis, ProblemInput
+    from ..services.analysis_service import AnalysisService
+except ImportError:
+    from backend.models.problem import ProblemAnalysis, ProblemInput
+    from backend.services.analysis_service import AnalysisService
 
 router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
