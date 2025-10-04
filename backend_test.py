@@ -205,79 +205,58 @@ class EmergentAPITester:
             logger.error(f"❌ Problem analysis failed: {e}")
             return False, f"Problem analysis error: {e}"
 
-def test_benchmark_harness_integration():
-    """Test 4: Benchmark harness integration"""
-    logger.info("Testing benchmark harness integration...")
-    
-    try:
-        from bench.context_bandit_bench import MockLLMScorer, EvolutionSimulator, BenchmarkConfig
+    async def test_get_problem_with_analysis(self) -> tuple[bool, str]:
+        """Test 4: Get problem with analysis"""
+        logger.info("Testing get problem with analysis endpoint...")
         
-        # Test MockLLMScorer for all problem types
-        problem_types = ["toy", "tsp", "synthetic"]
+        if not self.created_problem_id:
+            return False, "No problem_id available for get problem test"
         
-        for problem_type in problem_types:
-            scorer = MockLLMScorer(problem_type, seed=42)
+        try:
+            url = f"{self.base_url}/api/problem/{self.created_problem_id}"
             
-            # Test scoring with sample solution
-            solution = np.array([1.0, 2.0, 0.5, -1.0, 0.8])
-            context_info = {
-                'gen_progress': 0.3,
-                'no_improve_steps': 5,
-                'current_best': 0.5
-            }
-            
-            score = scorer.score_solution(solution, context_info)
-            assert 0 <= score <= 1, f"Score out of range [0,1]: {score} for {problem_type}"
-            logger.info(f"✅ MockLLMScorer working for {problem_type}: score={score:.3f}")
-        
-        # Test EvolutionSimulator
-        config = BenchmarkConfig(
-            benchmark="toy",
-            algorithm="baseline",
-            seed=42,
-            budget_steps=10,  # Small test
-            output_dir="/tmp/test_output"
-        )
-        
-        scorer = MockLLMScorer("toy", seed=42)
-        simulator = EvolutionSimulator(config, scorer)
-        
-        # Test single step
-        step_result = simulator.run_step()
-        
-        required_fields = [
-            'run_id', 'algo', 'benchmark', 'seed', 'step', 'context',
-            'fitness', 'best_fitness', 'llm_queries', 'llm_queries_cum',
-            'time_ms', 'gen_progress', 'no_improve_steps', 'fitness_slope',
-            'pop_diversity', 'selected_model', 'improvement'
-        ]
-        
-        for field in required_fields:
-            assert field in step_result, f"Missing field in step result: {field}"
-        
-        logger.info(f"✅ EvolutionSimulator step working: fitness={step_result['fitness']:.3f}")
-        
-        # Test context-aware simulator
-        config_context = BenchmarkConfig(
-            benchmark="synthetic",
-            algorithm="context",
-            seed=42,
-            budget_steps=5,
-            output_dir="/tmp/test_output"
-        )
-        
-        simulator_context = EvolutionSimulator(config_context, scorer)
-        step_result_context = simulator_context.run_step()
-        
-        assert 'context' in step_result_context, "Context field missing from context-aware simulator"
-        assert step_result_context['context'] != 'none', "Context should be detected"
-        logger.info(f"✅ Context-aware simulator working: context={step_result_context['context']}")
-        
-        return True, "Benchmark harness integration working correctly"
-        
-    except Exception as e:
-        logger.error(f"❌ Benchmark harness test failed: {e}")
-        return False, f"Benchmark harness error: {e}"
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    return False, f"Get problem failed with status {response.status}: {error_text}"
+                
+                data = await response.json()
+                
+                # Verify expected fields
+                required_fields = ["problem", "analysis"]
+                for field in required_fields:
+                    if field not in data:
+                        return False, f"Missing field in get problem response: {field}"
+                
+                # Verify problem data
+                problem = data["problem"]
+                if problem["problem_id"] != self.created_problem_id:
+                    return False, "Problem ID mismatch in get problem response"
+                
+                # Verify analysis is included
+                analysis = data["analysis"]
+                if analysis is None:
+                    return False, "Analysis should be included in response"
+                
+                # Verify analysis has required fields
+                analysis_required_fields = [
+                    "problem_id", "problem_characterization", "complexity_assessment",
+                    "key_challenges", "parameter_suggestions", "constraints_analysis"
+                ]
+                
+                for field in analysis_required_fields:
+                    if field not in analysis:
+                        return False, f"Missing field in analysis: {field}"
+                
+                logger.info(f"✅ Get problem with analysis successful")
+                logger.info(f"Problem title: {problem['problem_input']['title']}")
+                logger.info(f"Analysis timestamp: {analysis['analysis_timestamp']}")
+                
+                return True, f"Get problem with analysis successful"
+                
+        except Exception as e:
+            logger.error(f"❌ Get problem with analysis failed: {e}")
+            return False, f"Get problem with analysis error: {e}"
 
 def test_complete_minimal_benchmark():
     """Test 5: Complete minimal benchmark run"""
