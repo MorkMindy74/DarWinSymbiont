@@ -49,10 +49,11 @@ from shinka.llm import ThompsonSamplingBandit
 bandit = ThompsonSamplingBandit(
     arm_names=["gpt-4", "claude-3", "gemini-pro"],
     seed=42,
-    prior_alpha=1.5,    # Slightly optimistic prior
-    prior_beta=1.0,     # Standard prior
-    reward_scaling=2.0, # More sensitive to differences
-    auto_decay=0.98     # Adapt to changes
+    prior_alpha=1.5,      # Slightly optimistic prior
+    prior_beta=1.0,       # Standard prior
+    reward_mapping="adaptive",  # Auto-adapt to reward range (default)
+    reward_scaling=1.5,   # Sensitivity to differences (for adaptive/direct)
+    auto_decay=0.98       # Adapt to changes
 )
 
 # Update with rewards
