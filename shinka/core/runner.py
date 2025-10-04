@@ -176,12 +176,39 @@ class EvolutionRunner:
             verbose=verbose,
         )
 
-        self.llm = LLMClient(
+        # Initialize LLM client with optional caching
+        base_llm = LLMClient(
             model_names=evo_config.llm_models,
             model_selection=self.llm_selection,
             **evo_config.llm_kwargs,
             verbose=verbose,
         )
+        
+        # Initialize cache if enabled
+        if evo_config.llm_cache_enabled:
+            # Auto-generate cache path if not provided
+            cache_path = evo_config.llm_cache_path
+            if cache_path is None:
+                cache_path = str(Path(self.results_dir) / ".cache" / "llm_cache.db")
+            
+            cache_config = CacheConfig(
+                enabled=True,
+                mode=evo_config.llm_cache_mode,
+                path=cache_path,
+                ttl_hours=evo_config.llm_cache_ttl_hours,
+                key_fields=evo_config.llm_cache_key_fields,
+            )
+            
+            llm_cache = LLMCache(cache_config)
+            self.llm = CachedLLMClient(base_llm, llm_cache)
+            self.llm_cache = llm_cache
+            
+            if verbose:
+                logger.info(f"LLM caching enabled: {evo_config.llm_cache_mode} mode, "
+                           f"TTL: {evo_config.llm_cache_ttl_hours}h, Path: {cache_path}")
+        else:
+            self.llm = base_llm
+            self.llm_cache = None
         if evo_config.embedding_model is not None:
             self.embedding = EmbeddingClient(
                 model_name=evo_config.embedding_model,
