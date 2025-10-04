@@ -1,0 +1,47 @@
+# ShinkaEvolve configuration with Context-Aware Thompson Sampling
+evo_config:
+  _target_: shinka.core.EvolutionConfig
+  
+  # Basic evolution parameters
+  patch_types:
+    - "diff"
+    - "full"
+  patch_type_probs:
+    - 0.7
+    - 0.3
+  num_generations: 50
+  max_parallel_jobs: 3
+  max_patch_attempts: 10
+  
+  # LLM configuration with context-aware selection
+  llm_models:
+    - "gpt-4.1"
+    - "claude-3"
+    - "gemini-pro"
+  
+  # Context-Aware Thompson Sampling configuration
+  llm_dynamic_selection: "thompson_context"
+  llm_dynamic_selection_kwargs:
+    contexts: ["early", "mid", "late", "stuck"]
+    features: ["gen_progress", "no_improve", "fitness_slope", "pop_diversity"]
+    prior_alpha: 2.0      # Optimistic prior
+    prior_beta: 1.0       # Standard prior
+    auto_decay: 0.98      # Adaptation to non-stationarity
+    reward_mapping: "adaptive"  # Smart reward processing
+    context_switch_threshold: 0.15  # Prevent oscillation
+    min_context_samples: 8       # Stability requirement
+  
+  # Embedding and novelty
+  embedding_model: "text-embedding-3-small"
+  
+  # Output configuration
+  results_dir: ${output_dir}
+
+# Example usage:
+# python -m shinka.run --config-name=context_aware_evolution
+
+# Expected behavior:
+# - Early phase: Favor fast exploration models
+# - Mid phase: Balance exploration vs exploitation  
+# - Late phase: Focus on refinement models
+# - Stuck phase: Switch to high-precision models for breakthrough
