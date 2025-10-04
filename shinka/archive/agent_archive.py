@@ -586,6 +586,7 @@ class AgentArchive:
         
         # Collect artifacts
         self._collect_artifacts(agent_dir, config)
+        self._collect_dgm_artifacts(agent_dir, config)
         
         # Extract benchmarks and metrics
         benchmarks = self._extract_benchmark_metrics()
