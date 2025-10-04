@@ -60,6 +60,10 @@ def test_evolution_runner_with_caching():
         print(f"   Cache TTL: {evo_config.llm_cache_ttl_hours} hours")
         
         # Initialize EvolutionRunner - this should create cache
+        # Set a dummy API key to avoid initialization errors
+        import os
+        os.environ['OPENAI_API_KEY'] = 'dummy-key-for-testing'
+        
         runner = EvolutionRunner(
             evo_config=evo_config,
             job_config=job_config,
