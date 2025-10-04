@@ -426,6 +426,63 @@ class AgentArchive:
         
         return artifact_refs
     
+    
+    def _has_dgm_integration(self) -> bool:
+        """Check if DGM integration is available."""
+        dgm_path = Path("/app/third_party/dgm")
+        return dgm_path.exists() and (dgm_path / "DGM_outer.py").exists()
+    
+    def _get_dgm_submodule_hash(self) -> str:
+        """Get DGM submodule commit hash."""
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True, text=True, cwd="/app/third_party/dgm"
+            )
+            return result.stdout.strip() if result.returncode == 0 else "unknown"
+        except Exception:
+            return "not_available"
+    
+    def _check_polyglot_readiness(self) -> bool:
+        """Check if system is ready for polyglot development."""
+        # Check for multiple language support
+        languages = {
+            "python": Path("/usr/bin/python3").exists(),
+            "javascript": any(Path(p).exists() for p in ["/usr/bin/node", "/usr/local/bin/node"]),
+            "java": any(Path(p).exists() for p in ["/usr/bin/java", "/usr/local/bin/java"]),
+            "go": any(Path(p).exists() for p in ["/usr/bin/go", "/usr/local/go/bin/go"]),
+            "rust": any(Path(p).exists() for p in ["/usr/bin/rustc", "~/.cargo/bin/rustc"])
+        }
+        
+        # Consider ready if at least 2 languages available
+        ready_count = sum(languages.values())
+        return ready_count >= 2
+    
+    def _collect_dgm_artifacts(self, agent_dir: Path, config: Dict[str, Any]) -> None:
+        """Collect DGM-specific artifacts if available."""
+        if not self._has_dgm_integration():
+            return
+        
+        artifacts_dir = agent_dir / "artifacts"
+        
+        # Copy DGM reports if they exist
+        dgm_reports = Path("/app/reports/dgm")
+        if dgm_reports.exists():
+            dgm_artifacts_dir = artifacts_dir / "dgm_reports"
+            shutil.copytree(dgm_reports, dgm_artifacts_dir, dirs_exist_ok=True)
+        
+        # Copy DGM configuration used
+        if "benchmark" in config and config["benchmark"].startswith("dgm_"):
+            dgm_config = {
+                "dgm_benchmark": config["benchmark"],
+                "dgm_model": config.get("model", "mock"),
+                "dgm_budget": config.get("budget_steps", 200),
+                "dgm_integration_version": "1.0"
+            }
+            
+            dgm_config_file = artifacts_dir / "dgm_config.json"
+            with open(dgm_config_file, 'w') as f:
+                json.dump(dgm_config, f, indent=2)
     def _save_benchmarks_timeseries(self, agent_dir: Path, benchmarks: Dict[str, Dict[str, float]]) -> Dict[str, str]:
         """Save full time series data and return references."""
         timeseries_refs = {}
