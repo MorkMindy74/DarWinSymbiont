@@ -545,7 +545,11 @@ index 1234567..abcdefg 100644
             # Create valid agent first
             config = {"algorithm": "context", "seed": 42}
             
-            with patch('pathlib.Path.exists', return_value=False):
+            with patch('pathlib.Path.exists', return_value=False), \
+                 patch('subprocess.run') as mock_subprocess:
+                # Mock validation calls for performance
+                mock_subprocess.return_value = MagicMock(returncode=0, stdout="", stderr="")
+                
                 valid_agent_id = archive.save_agent(config)
             
             # Verify initial state
