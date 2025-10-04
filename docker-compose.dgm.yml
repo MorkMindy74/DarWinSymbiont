@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  dgm-sandbox:
+    build:
+      context: ./third_party/dgm
+      dockerfile: Dockerfile
+    container_name: shinka-dgm-sandbox
+    profiles: ["dgm"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - PYTHONPATH=/dgm
+    volumes:
+      # Read-only DGM code
+      - ./third_party/dgm:/dgm:ro
+      # Writable output directory
+      - ./reports/dgm:/dgm/output_dgm:rw
+      # Read-only ShinkaEvolve configs for adaptation
+      - ./configs:/shinka_configs:ro
+    working_dir: /dgm
+    command: tail -f /dev/null
+    networks:
+      - dgm-isolated
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    read_only: false
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m
+    ulimits:
+      nproc: 1024
+      nofile: 1024
+    mem_limit: 4g
+    cpus: 2.0
+    restart: "no"
+
+networks:
+  dgm-isolated:
+    driver: bridge
+    internal: true  # No external network access by default
