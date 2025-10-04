@@ -1,0 +1,36 @@
+# ShinkaEvolve configuration with fuzzy LLM caching
+evo_config:
+  _target_: shinka.core.EvolutionConfig
+  
+  # Basic evolution parameters  
+  patch_types:
+    - "diff"
+  patch_type_probs:
+    - 1.0
+  num_generations: 25
+  max_parallel_jobs: 3
+  max_patch_attempts: 5
+  
+  # LLM configuration
+  llm_models:
+    - "gpt-4.1"
+  
+  # Embedding and novelty
+  embedding_model: "text-embedding-3-small"
+  
+  # LLM Caching configuration - FUZZY MODE
+  llm_cache_enabled: true
+  llm_cache_mode: "fuzzy"  # Enable fuzzy matching for similar prompts
+  llm_cache_path: null  # Auto-generate path
+  llm_cache_ttl_hours: 72.0  # 3 days for experimentation
+  llm_cache_key_fields:
+    - "prompt"
+    - "model" 
+    # Note: Excluding seed for more aggressive caching in fuzzy mode
+  
+  # Output configuration
+  results_dir: ${output_dir}
+
+# This configuration enables fuzzy matching which can provide cache hits
+# for similar but not identical prompts, potentially reducing API costs
+# at the expense of some determinism.
