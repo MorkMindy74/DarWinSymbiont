@@ -1004,3 +1004,465 @@ class FixedSampler(BanditBase):
         # Print directly to console
         console = Console()
         console.print(table)
+
+
+class ContextAwareThompsonSamplingBandit(ThompsonSamplingBandit):
+    """
+    Context-Aware Thompson Sampling bandit that adapts to evolutionary phases.
+    
+    Maintains separate Beta posteriors for each evolutionary context (early, mid, late, stuck)
+    and selects arms based on the current context. This allows for more intelligent
+    exploration-exploitation trade-offs at different stages of evolution.
+    
+    Key Features:
+    - Automatic context detection based on evolutionary metrics
+    - Separate Beta posteriors for each context
+    - Configurable context definitions and features
+    - Backward compatible with standard Thompson Sampling
+    """
+    
+    def __init__(
+        self,
+        n_arms: Optional[int] = None,
+        seed: Optional[int] = None,
+        arm_names: Optional[List[str]] = None,
+        auto_decay: Optional[float] = 0.99,
+        shift_by_baseline: bool = True,
+        shift_by_parent: bool = True,
+        prior_alpha: float = 1.0,
+        prior_beta: float = 1.0,
+        reward_mapping: str = "adaptive",
+        reward_scaling: float = 1.0,
+        # Context-aware specific parameters
+        contexts: List[str] = None,
+        features: List[str] = None,
+        context_switch_threshold: float = 0.1,
+        min_context_samples: int = 5,
+        **kwargs: Any,
+    ):
+        # Initialize base Thompson Sampling bandit
+        super().__init__(
+            n_arms=n_arms,
+            seed=seed,
+            arm_names=arm_names,
+            auto_decay=auto_decay,
+            shift_by_baseline=shift_by_baseline,
+            shift_by_parent=shift_by_parent,
+            prior_alpha=prior_alpha,
+            prior_beta=prior_beta,
+            reward_mapping=reward_mapping,
+            reward_scaling=reward_scaling,
+            **kwargs
+        )
+        
+        # Context-aware configuration
+        self.contexts = contexts or ["early", "mid", "late", "stuck"]
+        self.features = features or ["gen_progress", "no_improve", "fitness_slope", "pop_diversity"]
+        self.context_switch_threshold = context_switch_threshold
+        self.min_context_samples = min_context_samples
+        
+        # Separate posteriors for each context
+        self.context_alpha = {}
+        self.context_beta = {}
+        self.context_n_submitted = {}
+        self.context_n_completed = {}
+        
+        # Initialize posteriors for all contexts
+        for context in self.contexts:
+            self.context_alpha[context] = np.full(self.n_arms, self.prior_alpha, dtype=np.float64)
+            self.context_beta[context] = np.full(self.n_arms, self.prior_beta, dtype=np.float64)
+            self.context_n_submitted[context] = np.zeros(self.n_arms, dtype=np.float64)
+            self.context_n_completed[context] = np.zeros(self.n_arms, dtype=np.float64)
+        
+        # Context tracking
+        self.current_context = self.contexts[0]  # Start with first context
+        self.context_history = []
+        self.context_switch_count = 0
+        self.evolution_state = {}
+        
+        # Context-specific statistics
+        self.context_stats = {context: {"selections": 0, "rewards": []} for context in self.contexts}
+        
+        logger.info(f"Context-Aware Thompson Sampling initialized with contexts: {self.contexts}")
+    
+    def _detect_context(
+        self,
+        generation: int,
+        total_generations: int,
+        no_improve_steps: int,
+        best_fitness_history: List[float],
+        population_diversity: float = None,
+        **kwargs
+    ) -> str:
+        """
+        Detect the current evolutionary context based on provided features.
+        
+        Args:
+            generation: Current generation number
+            total_generations: Total number of generations planned
+            no_improve_steps: Number of generations without improvement
+            best_fitness_history: History of best fitness values
+            population_diversity: Current population diversity measure
+            **kwargs: Additional context features
+            
+        Returns:
+            Current context name
+        """
+        # Calculate features
+        gen_progress = generation / max(total_generations, 1)
+        fitness_slope = self._calculate_fitness_slope(best_fitness_history)
+        
+        # Context detection logic
+        context_scores = {}
+        
+        # Early phase: Beginning of evolution
+        early_score = 1.0 - gen_progress  # High at start, decreases over time
+        if no_improve_steps < 5:
+            early_score *= 1.2  # Boost if still improving
+        context_scores["early"] = early_score
+        
+        # Mid phase: Middle of evolution with steady progress
+        mid_score = 1.0 - abs(gen_progress - 0.5) * 2  # Peak at 50% progress
+        if fitness_slope > 0 and no_improve_steps < 10:
+            mid_score *= 1.1  # Boost if improving steadily
+        context_scores["mid"] = mid_score
+        
+        # Late phase: End of evolution, convergence phase
+        late_score = gen_progress
+        if fitness_slope >= 0 and no_improve_steps < 15:
+            late_score *= 1.1  # Boost if still some progress
+        context_scores["late"] = late_score
+        
+        # Stuck phase: No improvement for extended period
+        stuck_score = 0.0
+        if no_improve_steps >= 10:
+            stuck_score = min(no_improve_steps / 20, 1.0)  # Increases with stuck time
+            if fitness_slope < -0.001:  # Declining fitness
+                stuck_score *= 1.3
+        context_scores["stuck"] = stuck_score
+        
+        # Add diversity-based adjustments if available
+        if population_diversity is not None:
+            if population_diversity < 0.3:  # Low diversity
+                context_scores["stuck"] *= 1.2
+                context_scores["late"] *= 0.9
+            elif population_diversity > 0.7:  # High diversity
+                context_scores["early"] *= 1.1
+                context_scores["mid"] *= 1.1
+        
+        # Select context with highest score
+        best_context = max(context_scores.items(), key=lambda x: x[1])[0]
+        
+        # Apply switching threshold to prevent oscillation
+        if (self.current_context != best_context and 
+            context_scores[best_context] > context_scores[self.current_context] + self.context_switch_threshold):
+            
+            # Check minimum samples requirement
+            current_samples = sum(self.context_n_completed[self.current_context])
+            if current_samples >= self.min_context_samples:
+                return best_context
+        
+        return self.current_context
+    
+    def _calculate_fitness_slope(self, fitness_history: List[float]) -> float:
+        """Calculate fitness improvement slope over recent history."""
+        if len(fitness_history) < 3:
+            return 0.0
+        
+        # Use last 5-10 values for slope calculation
+        recent_history = fitness_history[-min(10, len(fitness_history)):]
+        
+        if len(recent_history) < 2:
+            return 0.0
+        
+        # Simple linear regression slope
+        n = len(recent_history)
+        x = np.arange(n)
+        y = np.array(recent_history)
+        
+        slope = (n * np.sum(x * y) - np.sum(x) * np.sum(y)) / (n * np.sum(x**2) - np.sum(x)**2)
+        return slope
+    
+    def update_context(
+        self,
+        generation: int = 0,
+        total_generations: int = 100,
+        no_improve_steps: int = 0,
+        best_fitness_history: List[float] = None,
+        population_diversity: float = None,
+        **kwargs
+    ) -> str:
+        """
+        Update the current context based on evolutionary state.
+        
+        This method should be called by the EvolutionRunner to inform the bandit
+        about the current state of evolution.
+        
+        Returns:
+            The detected/updated context
+        """
+        best_fitness_history = best_fitness_history or []
+        
+        # Store evolution state for debugging
+        self.evolution_state = {
+            "generation": generation,
+            "total_generations": total_generations,
+            "no_improve_steps": no_improve_steps,
+            "gen_progress": generation / max(total_generations, 1),
+            "fitness_slope": self._calculate_fitness_slope(best_fitness_history),
+            "population_diversity": population_diversity
+        }
+        
+        # Detect new context
+        new_context = self._detect_context(
+            generation=generation,
+            total_generations=total_generations,
+            no_improve_steps=no_improve_steps,
+            best_fitness_history=best_fitness_history,
+            population_diversity=population_diversity,
+            **kwargs
+        )
+        
+        # Update context if changed
+        if new_context != self.current_context:
+            logger.info(f"Context switch: {self.current_context} → {new_context} (gen {generation})")
+            self.current_context = new_context
+            self.context_switch_count += 1
+        
+        # Track context history
+        self.context_history.append({
+            "generation": generation,
+            "context": self.current_context,
+            "evolution_state": self.evolution_state.copy()
+        })
+        
+        return self.current_context
+    
+    def update_submitted(self, arm: Arm) -> float:
+        """Update submission count for current context."""
+        arm_idx = self._resolve_arm(arm)
+        
+        # Update base class
+        super().update_submitted(arm)
+        
+        # Update context-specific count
+        self.context_n_submitted[self.current_context][arm_idx] += 1.0
+        
+        return self.context_n_completed[self.current_context][arm_idx]
+    
+    def update(
+        self,
+        arm: Arm,
+        reward: Optional[float],
+        baseline: Optional[float] = None,
+        **kwargs
+    ) -> tuple[float, float]:
+        """Update posterior for current context only."""
+        arm_idx = self._resolve_arm(arm)
+        is_real = reward is not None
+        
+        # Handle baseline shifting (same as base class)
+        if self._shift_by_parent and self._shift_by_baseline:
+            baseline = (
+                self._baseline if baseline is None else max(baseline, self._baseline)
+            )
+        elif self._shift_by_baseline:
+            baseline = self._baseline
+        elif not self._shift_by_parent:
+            baseline = 0.0
+        if baseline is None:
+            raise ValueError("baseline required when shifting is active")
+        
+        # Process reward
+        if is_real:
+            r_raw = float(reward)
+        else:
+            r_raw = baseline - 1.0
+        
+        r = r_raw - baseline
+        
+        # Convert reward to success probability
+        success_prob = self._reward_to_success_probability(r, baseline)
+        
+        # Update context-specific posteriors
+        if is_real or r < 0:
+            self.context_alpha[self.current_context][arm_idx] += success_prob
+            self.context_beta[self.current_context][arm_idx] += (1.0 - success_prob)
+        
+        self.context_n_completed[self.current_context][arm_idx] += 1.0
+        
+        # Update statistics
+        self.context_stats[self.current_context]["selections"] += 1
+        if is_real:
+            self.context_stats[self.current_context]["rewards"].append(r_raw)
+        
+        # Also update base class for compatibility
+        super().update(arm, reward, baseline)
+        
+        return r, baseline
+    
+    def posterior(
+        self,
+        subset: Subset = None,
+        samples: Optional[int] = None,
+        context: Optional[str] = None,
+        **kwargs: Any
+    ) -> np.ndarray:
+        """
+        Sample from posterior distribution for the specified or current context.
+        
+        Args:
+            subset: Subset of arms to consider
+            samples: Number of samples for multi-sampling
+            context: Specific context to use (default: current_context)
+            
+        Returns:
+            Probability distribution over arms
+        """
+        idx = self._resolve_subset(subset)
+        context = context or self.current_context
+        
+        # Use context-specific posteriors
+        context_alpha = self.context_alpha[context]
+        context_beta = self.context_beta[context]
+        
+        probs = np.zeros(self._n_arms, dtype=np.float64)
+        
+        if samples is None or int(samples) <= 1:
+            # Single sample Thompson Sampling
+            beta_samples = np.zeros(len(idx))
+            for i, arm_idx in enumerate(idx):
+                beta_samples[i] = self.rng.beta(
+                    context_alpha[arm_idx],
+                    context_beta[arm_idx]
+                )
+            
+            # Select arm with highest sample
+            best_idx = np.argmax(beta_samples)
+            probs[idx[best_idx]] = 1.0
+        else:
+            # Multi-sample version
+            samples = int(samples)
+            selection_counts = np.zeros(len(idx), dtype=int)
+            
+            for _ in range(samples):
+                beta_samples = np.zeros(len(idx))
+                for i, arm_idx in enumerate(idx):
+                    beta_samples[i] = self.rng.beta(
+                        context_alpha[arm_idx],
+                        context_beta[arm_idx]
+                    )
+                best_idx = np.argmax(beta_samples)
+                selection_counts[best_idx] += 1
+            
+            selection_probs = selection_counts.astype(np.float64) / samples
+            probs[idx] = selection_probs
+        
+        return probs
+    
+    def decay(self, factor: float) -> None:
+        """Apply decay to all context posteriors."""
+        if not (0.0 < factor <= 1.0):
+            raise ValueError("factor must be in (0, 1]")
+        
+        # Decay all contexts
+        for context in self.contexts:
+            self.context_alpha[context] = (
+                factor * self.context_alpha[context] + 
+                (1.0 - factor) * self.prior_alpha
+            )
+            self.context_beta[context] = (
+                factor * self.context_beta[context] + 
+                (1.0 - factor) * self.prior_beta
+            )
+            
+            self.context_n_submitted[context] *= factor
+            self.context_n_completed[context] *= factor
+        
+        # Also decay base class
+        super().decay(factor)
+    
+    def get_context_stats(self) -> Dict[str, Any]:
+        """Get detailed statistics for all contexts."""
+        stats = {
+            "current_context": self.current_context,
+            "context_switch_count": self.context_switch_count,
+            "evolution_state": self.evolution_state,
+            "contexts": {}
+        }
+        
+        for context in self.contexts:
+            context_n = np.maximum(
+                self.context_n_submitted[context],
+                self.context_n_completed[context]
+            )
+            
+            context_mean = (
+                self.context_alpha[context] / 
+                (self.context_alpha[context] + self.context_beta[context])
+            )
+            
+            stats["contexts"][context] = {
+                "n_samples": context_n.tolist(),
+                "alpha": self.context_alpha[context].tolist(),
+                "beta": self.context_beta[context].tolist(),
+                "posterior_mean": context_mean.tolist(),
+                "selections": self.context_stats[context]["selections"],
+                "avg_reward": np.mean(self.context_stats[context]["rewards"]) 
+                            if self.context_stats[context]["rewards"] else 0.0
+            }
+        
+        return stats
+    
+    def print_summary(self) -> None:
+        """Print comprehensive summary including context information."""
+        # Print base summary first
+        super().print_summary()
+        
+        # Add context-specific information
+        print("\n" + "="*60)
+        print("🎯 CONTEXT-AWARE THOMPSON SAMPLING")
+        print("="*60)
+        
+        print(f"Current Context: {self.current_context}")
+        print(f"Context Switches: {self.context_switch_count}")
+        
+        if self.evolution_state:
+            print(f"Generation Progress: {self.evolution_state.get('gen_progress', 0):.1%}")
+            print(f"No Improve Steps: {self.evolution_state.get('no_improve_steps', 0)}")
+            print(f"Fitness Slope: {self.evolution_state.get('fitness_slope', 0):.4f}")
+        
+        # Context-specific statistics
+        context_stats = self.get_context_stats()
+        
+        context_table = Table(
+            title="Context Statistics",
+            box=rich.box.ROUNDED,
+            show_header=True,
+            header_style="bold cyan",
+        )
+        
+        context_table.add_column("Context", style="white")
+        context_table.add_column("Selections", justify="right", style="green")
+        context_table.add_column("Avg Reward", justify="right", style="yellow")
+        context_table.add_column("Best Arm", justify="right", style="blue")
+        
+        for context, stats in context_stats["contexts"].items():
+            selections = stats["selections"]
+            avg_reward = stats["avg_reward"]
+            best_arm_idx = np.argmax(stats["posterior_mean"])
+            best_arm_name = self._arm_names[best_arm_idx] if self._arm_names else str(best_arm_idx)
+            
+            # Highlight current context
+            style = "bold" if context == self.current_context else None
+            
+            context_table.add_row(
+                context,
+                str(selections),
+                f"{avg_reward:.3f}",
+                best_arm_name,
+                style=style
+            )
+        
+        console = Console()
+        console.print(context_table)
