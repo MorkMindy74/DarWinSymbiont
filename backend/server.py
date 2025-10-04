@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Set dummy OPENAI_API_KEY for ShinkaEvolve embedding client
+if not os.getenv("OPENAI_API_KEY"):
+    os.environ["OPENAI_API_KEY"] = "sk-dummy-key-for-shinka-evolve"
+
 # Import routes - use relative imports since uvicorn runs from backend directory
 from routes import problem, analysis, evolution
 
