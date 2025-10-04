@@ -1083,7 +1083,7 @@ def generate_plots(output_dir: str = "reports/context_bandit"):
 def main():
     """Main benchmark execution."""
     parser = argparse.ArgumentParser(description="Context-Aware Thompson Sampling Benchmark")
-    parser.add_argument('--benchmark', choices=['toy', 'tsp', 'synthetic', 'all'], 
+    parser.add_argument('--benchmark', choices=['toy', 'tsp', 'synthetic', 'dgm_swe', 'dgm_polyglot', 'all'], 
                        default='toy', help='Benchmark to run')
     parser.add_argument('--algo', choices=['baseline', 'decay', 'context', 'ucb', 'epsilon', 'all'], 
                        default='all', help='Algorithm to test')
