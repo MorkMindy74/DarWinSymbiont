@@ -125,7 +125,7 @@ class ShinkaEvolutionBridge:
         if not self.db_path.exists():
             return {}
         
-        conn = sqlite3.connect(str(self.db_path))
+        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         
         # Get programs for this generation
         cursor = conn.execute("""
