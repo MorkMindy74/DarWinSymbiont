@@ -839,6 +839,9 @@ def analyze_results(output_dir: str = "reports/context_bandit") -> Dict[str, Any
     return {
         'aggregated_results': aggregated,
         'acceptance_results': acceptance_results,
+        'delta_results': delta_results,
+        'context_switch_data': context_switch_data,
+        'oscillation_data': oscillation_data,
         'raw_results': results_df
     }
 
