@@ -571,7 +571,13 @@ class AgentArchive:
                 "prompts_used": [],
                 "swe_bench_commit": git_info["commit"],
                 "polyglot_prepared": True
-            }
+            },
+            # Production-grade enrichment
+            benchmarks_full=benchmarks_full,
+            complexity_metrics=complexity_metrics,
+            validation_levels=validation_levels,
+            cost_breakdown=cost_breakdown,
+            artifact_refs=artifact_refs
         )
         
         # Save manifest
