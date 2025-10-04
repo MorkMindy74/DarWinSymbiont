@@ -123,6 +123,8 @@ class MockLLMScorer:
             self._init_hard_toy()
         elif problem_type == "synthetic":
             self._init_hard_synthetic()
+        elif problem_type in ["dgm_swe", "dgm_polyglot"]:
+            self._init_dgm_benchmark(problem_type)
     
     def _init_tsp_berlin52(self):
         """Initialize Berlin52 TSP coordinates (TSPLIB format)."""
