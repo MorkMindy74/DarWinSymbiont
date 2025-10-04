@@ -62,6 +62,14 @@ class EvolutionConfig:
     novelty_llm_models: Optional[List[str]] = None
     novelty_llm_kwargs: dict = field(default_factory=lambda: {})
     use_text_feedback: bool = False
+    # LLM Caching configuration
+    llm_cache_enabled: bool = False
+    llm_cache_mode: str = "exact"  # "exact" or "fuzzy"
+    llm_cache_path: Optional[str] = None  # Auto-generated if None
+    llm_cache_ttl_hours: float = 168.0  # 7 days default
+    llm_cache_key_fields: List[str] = field(default_factory=lambda: [
+        "prompt", "seed", "model", "tool_state"
+    ])
 
 
 @dataclass
