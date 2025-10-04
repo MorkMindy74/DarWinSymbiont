@@ -1,8 +1,9 @@
 """
 Analysis routes
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import Optional
 
 try:
     from ..models.problem import ProblemAnalysis, ProblemInput
@@ -14,11 +15,16 @@ except ImportError:
 router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
 
+# Dependency to get database (will be injected)
+async def get_db() -> Optional[AsyncIOMotorDatabase]:
+    return None
+
+
 @router.post("/analyze/{problem_id}", response_model=ProblemAnalysis)
 async def analyze_problem(
     problem_id: str, 
     problem_input: ProblemInput,
-    db: AsyncIOMotorDatabase = None
+    db: Optional[AsyncIOMotorDatabase] = Depends(get_db)
 ):
     """
     Analyze a problem using LLM
