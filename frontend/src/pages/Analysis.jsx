@@ -50,6 +50,46 @@ function Analysis() {
     }));
   };
 
+  const handleStartEvolution = async () => {
+    if (!analysis) {
+      toast.error('Analysis not available');
+      return;
+    }
+
+    try {
+      toast.loading('Configuring evolution...', { id: 'evolution-config' });
+
+      // Use recommended config from analysis
+      const userConfig = {
+        num_generations: analysis.recommended_evolution_config.num_generations || 20,
+        max_parallel_jobs: analysis.recommended_evolution_config.max_parallel_jobs || 2,
+        llm_models: ["azure-gpt-4.1-mini"],
+        num_islands: 4,
+        archive_size: 100,
+        migration_interval: 10,
+      };
+
+      // Configure evolution
+      const configResponse = await evolutionAPI.configure(problemId, userConfig);
+      const sessionId = configResponse.data.session_id;
+
+      toast.success('Configuration complete!', { id: 'evolution-config' });
+      toast.loading('Starting evolution...', { id: 'evolution-start' });
+
+      // Start evolution
+      await evolutionAPI.start(sessionId);
+
+      toast.success('Evolution started!', { id: 'evolution-start' });
+
+      // Navigate to evolution dashboard
+      navigate(`/evolution/${sessionId}`);
+
+    } catch (error) {
+      console.error('Failed to start evolution:', error);
+      toast.error('Failed to start evolution: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const getImportanceBadge = (importance) => {
     const colors = {
       critical: 'bg-red-100 text-red-800 border-red-200',
