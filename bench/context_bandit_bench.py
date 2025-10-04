@@ -404,7 +404,14 @@ class EvolutionSimulator:
         self.fitness_history = []
         self.population_diversity_history = []
         self.current_best_fitness = 0.0
+        self.current_fitness = 0.0
+        self.previous_fitness = 0.0
         self.no_improve_steps = 0
+        self.fitness_slope = 0.0
+        self.last_selected_model = "balanced_model"
+        
+        # Generate unique run ID
+        self.run_id = f"{config.algorithm}_{config.benchmark}_{config.seed}_{int(time.time())}"
         
         # Metrics tracking
         self.llm_queries_total = 0
