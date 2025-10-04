@@ -103,6 +103,9 @@ class BenchmarkConfig:
     ablation: str = "none"
     hyperparams: str = "2.0,1.0,0.99"
     cache: str = "off"
+    dedup: str = "off"
+    dedup_method: str = "minhash"
+    dedup_threshold: float = 0.8
 
 
 class MockLLMScorer:
