@@ -158,6 +158,54 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Complete minimal benchmark run working correctly. 50-step benchmark completed successfully, CSV output contains expected columns, context-aware benchmark shows 2 context switches, no runtime errors detected. Final fitness: baseline=0.754, context-aware=0.902."
 
+  - task: "EMERGENT Platform API - Evolution Configuration"
+    implemented: true
+    working: true
+    file: "backend/routes/evolution.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Evolution configuration API working correctly. POST /api/evolution/configure/{problem_id} successfully creates evolution session, generates TSP-specific initial.py and evaluate.py code, returns session_id, work_dir, ws_url, and code content. Fixed JobConfig initialization and OPENAI_API_KEY issues. Code generation produces proper TSP nearest neighbor heuristic (1183 chars) and evaluation logic (3672 chars)."
+
+  - task: "EMERGENT Platform API - Evolution Status"
+    implemented: true
+    working: true
+    file: "backend/routes/evolution.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Evolution status API working correctly. GET /api/evolution/status/{session_id} returns complete session information including session_id, problem_id, user_config, work_dir, status, and runtime info (is_running, latest_generation, islands). Status transitions properly from 'configured' to 'running' during evolution."
+
+  - task: "EMERGENT Platform API - Evolution Start"
+    implemented: true
+    working: true
+    file: "backend/routes/evolution.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Evolution start API working correctly. POST /api/evolution/start/{session_id} successfully starts evolution in background, returns proper status 'started' with confirmation message. Evolution process begins immediately and status monitoring shows transition to 'running' state. Background evolution task created successfully."
+
+  - task: "EMERGENT Platform API - File Generation Verification"
+    implemented: true
+    working: true
+    file: "backend/services/shinka_bridge.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: File generation verification working correctly. Evolution configuration creates proper work directory structure at /tmp/emergent_evolution/{session_id}/ with initial.py (TSP nearest neighbor heuristic), evaluate.py (TSP evaluation with distance matrix), and supporting directories (archive, results). Files contain valid Python code with TSP-specific logic and proper experiment structure."
+
 frontend:
   - task: "EMERGENT Platform UI - Home Page"
     implemented: true
