@@ -218,20 +218,30 @@ class EvolutionRunner:
             self.embedding = None
 
         if evo_config.meta_llm_models is not None:
-            self.meta_llm = LLMClient(
+            base_meta_llm = LLMClient(
                 model_names=evo_config.meta_llm_models,
                 **evo_config.meta_llm_kwargs,
                 verbose=verbose,
             )
+            # Share cache with main LLM if caching is enabled
+            if evo_config.llm_cache_enabled and hasattr(self, 'llm_cache'):
+                self.meta_llm = CachedLLMClient(base_meta_llm, self.llm_cache)
+            else:
+                self.meta_llm = base_meta_llm
         else:
             self.meta_llm = None
 
         if evo_config.novelty_llm_models is not None:
-            self.novelty_llm = LLMClient(
+            base_novelty_llm = LLMClient(
                 model_names=evo_config.novelty_llm_models,
                 **evo_config.novelty_llm_kwargs,
                 verbose=verbose,
             )
+            # Share cache with main LLM if caching is enabled
+            if evo_config.llm_cache_enabled and hasattr(self, 'llm_cache'):
+                self.novelty_llm = CachedLLMClient(base_novelty_llm, self.llm_cache)
+            else:
+                self.novelty_llm = base_novelty_llm
         else:
             self.novelty_llm = None
 
