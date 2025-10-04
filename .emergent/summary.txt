@@ -1,0 +1,82 @@
+<analysis>
+The trajectory details the incremental development of the ShinkaEvolve application, a framework for evolutionary computation. The work was performed in three main phases, followed by a fourth validation phase which is currently in progress.
+
+Phase 1 involved implementing a  algorithm. This began with adding the class to , creating tests, and installing missing dependencies. A critical code review from the user revealed a flaw in the reward mapping logic (using a sigmoid function inappropriately), which compressed reward values and hindered performance. The engineer confirmed this bug with targeted tests, then implemented the suggested adaptive mapping solution, validated the fix with a comprehensive test suite, and updated the documentation.
+
+Phase 2 focused on building a deterministic caching system for LLM queries. The engineer created a new module () using SQLite for persistence and integrated it into the main . A key challenge arose when the user provided a test script expecting a simpler interface. The engineer adapted by creating a  to provide the desired simpler interface while using the more complex backend, ensuring the user's code worked with minimal changes.
+
+Phase 3 introduced a , designed to adapt its strategy based on the evolutionary phase (e.g., early, stuck). This involved extending  and modifying the core  to track and update the context during the main evolutionary loop.
+
+The current and final phase involves autonomously validating the context-aware bandit against the baseline version by building a complete benchmark harness. The initial step of fixing the related unit tests has been completed, and the primary benchmark script has just been created.
+</analysis>
+
+<product_requirements>
+The project, ShinkaEvolve, is an advanced framework for evolutionary algorithms, likely used for code generation or optimization tasks leveraging Large Language Models (LLMs). The core requirement is to enhance the framework's efficiency and intelligence by implementing several new features.
+
+So far, three major features have been developed:
+1.  **Thompson Sampling Bandit:** An initial implementation was requested to add Thompson Sampling as an LLM selection strategy. A critical flaw was later identified and fixed: the reward mapping was compressing fitness scores, which was corrected by implementing an adaptive normalization strategy. This feature is now production-ready.
+2.  **Deterministic LLM Caching:** A persistent caching layer for LLM queries was required to reduce costs and improve speed. The system uses a SQLite backend and generates deterministic keys from query parameters. A user-friendly adapter was also built to simplify its interface for testing.
+3.  **Context-Aware Thompson Sampling:** An advanced version of the Thompson Sampling bandit that adapts its behavior based on the current evolutionary phase (early, mid, late, stuck). It maintains separate beliefs (posteriors) for each context to make more informed decisions, such as favoring faster models in early stages and more accurate ones when stuck.
+
+The overarching goal is to make the evolutionary process smarter, faster, and more cost-effective.
+</product_requirements>
+
+<key_technical_concepts>
+- **Bandit Algorithms:** Multi-armed bandit strategies for dynamic selection, specifically  and .
+- **Bayesian Statistics:** Use of Beta distribution to model success probabilities for Thompson Sampling arms.
+- **Reward Mapping:** Techniques to convert raw fitness scores into probabilities, including a flawed  approach and a superior  normalization method.
+- **Deterministic Caching:** Using SHA256 hashing of query parameters (, , , ) to create unique keys for a persistent SQLite cache, including Time-To-Live (TTL) expiration.
+- **Evolutionary Computation:** Core concepts like generations, fitness scores, population diversity, and evolutionary phases (e.g., stuck).
+</key_technical_concepts>
+
+<code_architecture>
+The project follows a modular structure with a core engine, LLM integrations, and configuration management.
+
+
+- ****
+  - **Importance:** This file contains the core logic for all bandit-based dynamic sampling algorithms. It's the heart of the LLM selection strategy.
+  - **Changes:** It was significantly modified. First,  was added. Then, it was heavily refactored to replace a flawed sigmoid reward mapping with a more robust adaptive normalization system. Finally,  was added, which maintains separate posteriors for different evolutionary contexts.
+
+- ****
+  - **Importance:** This is the main orchestrator for the evolutionary process. It manages the configuration, initializes all components (including LLM clients and bandits), and runs the generation loop.
+  - **Changes:** It was updated to integrate the new features. Logic was added to wrap LLM clients with the  if caching is enabled. It was also modified to calculate and update the evolutionary context (e.g., stuck, early) on each generation and pass this context to the .
+
+- ****
+  - **Importance:** This new file encapsulates the entire deterministic caching logic. It handles database initialization, key generation, and storing/retrieving  objects.
+  - **Changes:** This file was created from scratch to implement the caching feature as per the requirements, using SQLite for persistence.
+
+- ****
+  - **Importance:** This file was created to provide a simplified, user-friendly interface for the caching system, matching an interface the user expected. It acts as a wrapper around the more complex native caching implementation.
+  - **Changes:** Created from scratch to bridge the gap between the implemented architecture and the user's testing code, demonstrating flexibility.
+
+- ****
+  - **Importance:** This is a new, critical script for autonomously validating the performance of the context-aware bandit against the baseline. It is designed to run experiments, collect metrics, and generate reports.
+  - **Changes:** The file was just created. Its internal logic has not yet been implemented.
+
+- ****
+  - **Importance:** Contains the unit tests for the context-aware bandit, verifying its core logic like context switching and posterior isolation.
+  - **Changes:** The tests in this file were initially failing. They were debugged and fixed to correctly handle the bandit's behavior, particularly around sampling logic and floating-point comparisons.
+</code_architecture>
+
+<pending_tasks>
+- **Implement low-cost deduplication:** Integrate MinHash or SimHash to filter near-identical mutations.
+- **Implement checkpointing and manifest generation:** Save the full state of the evolution periodically.
+- **Integrate MAP-Elites:** Add an optional archive to preserve solution diversity.
+- **Create multilingual adapters:** Extend  to support C++, Rust, and Java.
+- **Add streaming evaluation and early stopping:** Provide real-time feedback and stop unpromising runs early.
+- **Implement resource and cost monitoring:** Integrate  and LLM cost trackers.
+</pending_tasks>
+
+<current_work>
+The current task is to autonomously validate the newly implemented  against the baseline . This is a comprehensive validation task requested by the user, which involves building a full benchmark harness.
+
+The work so far has completed the first step of this task:
+1.  **Unit Test Verification:** The existing unit tests for the context-aware bandit in  were failing. These have been successfully debugged and fixed, ensuring the core logic of the bandit is sound. All 17 tests now pass.
+
+The work is currently at the very beginning of the second step:
+2.  **Benchmark Harness Implementation:** The directory  has been created, and the main script file  has been created. The file is currently empty. The next step is to implement the logic within this script to load configurations, run benchmark simulations, log detailed metrics to CSV files, and analyze the results as specified in the user's detailed request.
+</current_work>
+
+<optional_next_step>
+I will now begin implementing the benchmark harness logic within the newly created file, .
+</optional_next_step>
