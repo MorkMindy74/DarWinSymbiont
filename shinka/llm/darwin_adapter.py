@@ -46,6 +46,11 @@ class CachedLLM:
         # Initialize cache
         self.cache = LLMCache(self.cache_config)
         
+        # Ensure database is properly initialized by creating directory
+        from pathlib import Path
+        cache_path = Path(self.cache_config.path)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        
         # Model function placeholder
         self.model_fn: Optional[Callable[[str], str]] = None
         
