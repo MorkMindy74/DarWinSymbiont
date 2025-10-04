@@ -155,18 +155,118 @@ class DGMRunner:
         if not self.config.unsafe_allow:
             self._validate_command_safety(command)
         
+        # Pre-execution resource monitoring
+        self._check_resource_limits()
+        
+        start_time = time.time()
+        
         try:
-            result = subprocess.run([
-                "docker", "exec", "shinka-dgm-sandbox"
-            ] + command, capture_output=True, text=True, timeout=timeout)
+            # Execute with resource constraints
+            docker_command = [
+                "docker", "exec", 
+                "--memory", f"{self.config.max_memory_gb}g",
+                "--cpus", str(self.config.max_cpus),
+                "--user", "nobody",  # Run as non-root user
+                "shinka-dgm-sandbox"
+            ] + command
+            
+            result = subprocess.run(
+                docker_command, 
+                capture_output=True, text=True, timeout=timeout
+            )
+            
+            execution_time = time.time() - start_time
+            
+            # Post-execution monitoring
+            self._log_resource_usage(command, execution_time)
+            
+            # Check for suspicious output patterns
+            if not self.config.unsafe_allow:
+                self._validate_command_output(result)
             
             return result
             
         except subprocess.TimeoutExpired:
             logger.error(f"Command timed out after {timeout}s: {' '.join(command)}")
-            # Kill container on timeout
-            subprocess.run(["docker", "kill", "shinka-dgm-sandbox"], capture_output=True)
+            # Emergency container shutdown
+            self._emergency_container_shutdown()
             raise DGMSafetyError(f"Command execution timed out: {' '.join(command)}")
+        except Exception as e:
+            logger.error(f"Command execution failed: {e}")
+            raise DGMSafetyError(f"Command execution error: {e}")
+    
+    def _check_resource_limits(self):
+        """Check current resource usage before execution."""
+        try:
+            # Check if container is using too many resources
+            result = subprocess.run([
+                "docker", "stats", "shinka-dgm-sandbox", 
+                "--no-stream", "--format", "{{.CPUPerc}},{{.MemUsage}}"
+            ], capture_output=True, text=True, timeout=5)
+            
+            if result.returncode == 0 and result.stdout.strip():
+                stats = result.stdout.strip().split(',')
+                if len(stats) >= 2:
+                    cpu_pct = float(stats[0].replace('%', ''))
+                    if cpu_pct > 90:  # 90% CPU usage
+                        raise DGMSafetyError(f"Container CPU usage too high: {cpu_pct}%")
+        except Exception as e:
+            logger.debug(f"Could not check resource limits: {e}")
+    
+    def _log_resource_usage(self, command: List[str], execution_time: float):
+        """Log resource usage for monitoring."""
+        logger.info(f"Command '{' '.join(command[:2])}...' completed in {execution_time:.2f}s")
+        
+        # Log to file for analysis
+        usage_log = {
+            "timestamp": time.time(),
+            "command": command[:3],  # First 3 args only for privacy
+            "execution_time": execution_time,
+            "timeout_limit": self.config.timeout_seconds
+        }
+        
+        log_file = Path("/app/reports/dgm/resource_usage.log")
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with open(log_file, 'a') as f:
+                f.write(json.dumps(usage_log) + "\n")
+        except Exception as e:
+            logger.debug(f"Could not write resource usage log: {e}")
+    
+    def _validate_command_output(self, result: subprocess.CompletedProcess):
+        """Validate command output for suspicious content."""
+        suspicious_output_patterns = [
+            "password:", "ssh-rsa", "BEGIN PRIVATE KEY", "api_key",
+            "secret", "token", "/root/", "sudo:", "permission denied"
+        ]
+        
+        combined_output = (result.stdout + result.stderr).lower()
+        
+        for pattern in suspicious_output_patterns:
+            if pattern in combined_output:
+                logger.warning(f"Suspicious output pattern detected: '{pattern}'")
+                # Don't raise error, just warn - output might be legitimate
+    
+    def _emergency_container_shutdown(self):
+        """Emergency shutdown of DGM container."""
+        try:
+            # Force kill container
+            subprocess.run(
+                ["docker", "kill", "shinka-dgm-sandbox"], 
+                capture_output=True, timeout=10
+            )
+            logger.info("Emergency container shutdown completed")
+        except Exception as e:
+            logger.error(f"Emergency shutdown failed: {e}")
+        
+        try:
+            # Clean up resources
+            subprocess.run([
+                "docker-compose", "-f", "docker-compose.dgm.yml", "down", "-v"
+            ], cwd="/app", capture_output=True, timeout=30)
+        except Exception as e:
+            logger.error(f"Emergency cleanup failed: {e}")
     
     def _validate_command_safety(self, command: List[str]):
         """Validate command against safety constraints."""
