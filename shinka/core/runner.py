@@ -1456,6 +1456,41 @@ class EvolutionRunner:
                 table.add_row("diff_summary", str(diff_summary)[:200])
 
         self.console.print(table)
+    
+    def _save_agent_to_archive(self, program: Program, trigger: str) -> str:
+        """Save current best agent to archive."""
+        if self.archive is None:
+            raise ValueError("Archive not initialized")
+        
+        # Create configuration snapshot
+        config_snapshot = {
+            "trigger": trigger,
+            "program_id": program.id,
+            "generation": program.generation,
+            "fitness": program.fitness,
+            "seed": 42,  # Default seed, could be extracted from config
+            "algorithm": getattr(self.evo_config, 'llm_dynamic_selection', 'default'),
+            "evolution_config": asdict(self.evo_config),
+            "job_config": asdict(self.job_config),
+            "database_config": asdict(self.db_config),
+            "results_directory": str(self.results_dir),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Save agent to archive
+        agent_id = self.archive.save_agent(
+            config=config_snapshot,
+            parent_id=getattr(self, '_last_archived_agent_id', None),
+            artifacts_paths=[str(self.results_dir)]
+        )
+        
+        # Remember this agent ID for lineage
+        self._last_archived_agent_id = agent_id
+        
+        if self.verbose:
+            logger.info(f"Agent {agent_id} saved to archive (trigger: {trigger})")
+        
+        return agent_id
 
     def _save_meta_memory(self) -> None:
         """Save the meta memory state to disk."""
