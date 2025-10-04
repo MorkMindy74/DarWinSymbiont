@@ -60,6 +60,8 @@ class EmergentAPITester:
         self.base_url = base_url.rstrip('/')
         self.session = None
         self.created_problem_id = None
+        self.evolution_session_id = None
+        self.work_dir = None
         
     async def __aenter__(self):
         """Async context manager entry"""
