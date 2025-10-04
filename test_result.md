@@ -274,8 +274,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "EMERGENT Platform UI - Evolution Dashboard"
+  stuck_tasks:
+    - "EMERGENT Platform UI - Evolution Dashboard"
   test_all: false
   test_priority: "high_first"
 
