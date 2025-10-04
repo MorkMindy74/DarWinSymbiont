@@ -575,9 +575,14 @@ class AgentArchive:
             context_activity=context_activity,
             dgm_compat={
                 "repo_layout_ref": "ShinkaEvolve structure (shinka/core/runner.py, bench/context_bandit_bench.py, reports/context_bandit/)",
-                "prompts_used": [],
+                "entry_point": "DGM_outer.py" if self._has_dgm_integration() else "bench/context_bandit_bench.py",
+                "prompts_dir": "third_party/dgm/prompts/" if self._has_dgm_integration() else "shinka/prompts/",
+                "tools_dir": "third_party/dgm/tools/" if self._has_dgm_integration() else "shinka/tools/",
                 "swe_bench_commit": git_info["commit"],
-                "polyglot_prepared": True
+                "polyglot_prepared": self._check_polyglot_readiness(),
+                "dgm_submodule_hash": self._get_dgm_submodule_hash(),
+                "dgm_integration_enabled": self._has_dgm_integration(),
+                "adapter_version": "1.0"
             },
             # Production-grade enrichment
             benchmarks_full=benchmarks_full,
