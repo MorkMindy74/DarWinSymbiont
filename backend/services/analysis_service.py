@@ -3,13 +3,23 @@ Analysis Service for problem processing
 """
 import json
 from typing import Dict, Any
-from backend.services.llm_service import LLMService
-from backend.models.problem import (
-    ProblemInput, 
-    ProblemAnalysis,
-    ParameterSuggestion,
-    ConstraintAnalysis
-)
+
+try:
+    from .llm_service import LLMService
+    from ..models.problem import (
+        ProblemInput, 
+        ProblemAnalysis,
+        ParameterSuggestion,
+        ConstraintAnalysis
+    )
+except ImportError:
+    from backend.services.llm_service import LLMService
+    from backend.models.problem import (
+        ProblemInput, 
+        ProblemAnalysis,
+        ParameterSuggestion,
+        ConstraintAnalysis
+    )
 
 
 class AnalysisService:
