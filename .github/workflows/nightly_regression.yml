@@ -1,0 +1,244 @@
+name: Nightly Regression Test
+
+on:
+  schedule:
+    # Run at 2 AM UTC every night
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+    inputs:
+      agent_id:
+        description: 'Specific agent ID to test (optional)'
+        required: false
+        default: ''
+      tolerance:
+        description: 'Tolerance percentage for regression test'
+        required: false
+        default: '1.0'
+
+jobs:
+  regression-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest matplotlib seaborn pandas numpy pyyaml
+        
+    - name: Setup agent archive
+      run: |
+        mkdir -p /app/shinka/archive/agents
+        # Create a stable reference agent if none exists
+        python -c "
+        import sys
+        sys.path.insert(0, '/app')
+        from shinka.archive import create_agent_archive, list_archived_agents
+        
+        agents = list_archived_agents()
+        if not agents:
+            print('Creating stable reference agent for regression testing...')
+            archive = create_agent_archive()
+            
+            # Run quick benchmark to get realistic data
+            import subprocess
+            result = subprocess.run([
+                'python', '-m', 'bench.context_bandit_bench',
+                '--benchmark', 'toy',
+                '--algo', 'context', 
+                '--seed', '42',
+                '--budget_steps', '300',
+                '--model', 'mock'
+            ], cwd='/app', capture_output=True)
+            
+            config = {
+                'algorithm': 'context',
+                'seed': 42, 
+                'benchmark': 'toy',
+                'budget_steps': 300,
+                'regression_baseline': True,
+                'created_for': 'nightly_regression'
+            }
+            
+            agent_id = archive.save_agent(config)
+            print(f'✅ Created stable agent {agent_id} for regression testing')
+        else:
+            print(f'Found {len(agents)} existing agents for regression testing')
+        "
+        
+    - name: Run regression test
+      id: regression
+      run: |
+        echo "Running nightly regression test..."
+        
+        if [ -n "${{ github.event.inputs.agent_id }}" ]; then
+          AGENT_ID="${{ github.event.inputs.agent_id }}"
+          echo "Testing specific agent: $AGENT_ID"
+        else
+          # Find most recent stable agent
+          AGENT_ID=$(python -c "
+          import sys
+          sys.path.insert(0, '/app')
+          from shinka.archive import list_archived_agents
+          agents = list_archived_agents()
+          if agents:
+              print(agents[0]['id'])
+          else:
+              print('ERROR: No agents found')
+              exit(1)
+          ")
+        fi
+        
+        TOLERANCE="${{ github.event.inputs.tolerance || '1.0' }}"
+        
+        echo "agent_id=$AGENT_ID" >> $GITHUB_OUTPUT
+        echo "tolerance=$TOLERANCE" >> $GITHUB_OUTPUT
+        
+        # Run the actual regression test
+        python -c "
+        import sys
+        import json
+        sys.path.insert(0, '/app')
+        from shinka.archive import reproduce_agent
+        
+        agent_id = '$AGENT_ID'
+        tolerance = float('$TOLERANCE')
+        
+        print(f'🔍 Running regression test for agent {agent_id} with ±{tolerance}% tolerance')
+        
+        result = reproduce_agent(agent_id, tolerance_pct=tolerance)
+        
+        # Save results for potential issue creation
+        with open('regression_result.json', 'w') as f:
+            json.dump(result, f, indent=2, default=str)
+        
+        if result['success']:
+            print('✅ NIGHTLY REGRESSION TEST PASSED')
+            print('All metrics within tolerance')
+            
+            # Print summary of checked metrics
+            if 'verification_results' in result:
+                for benchmark, verification in result['verification_results'].items():
+                    status = '✅' if verification['passed'] else '❌'
+                    print(f'{status} {benchmark}')
+                    
+                    if 'checks' in verification:
+                        for metric, check in verification['checks'].items():
+                            diff_pct = check['diff_pct']
+                            print(f'    {metric}: {diff_pct:.2f}% difference')
+        else:
+            print('❌ NIGHTLY REGRESSION TEST FAILED')
+            print(f'Error: {result.get(\"error\", \"Unknown error\")}')
+            exit(1)
+        " || echo "regression_failed=true" >> $GITHUB_OUTPUT
+        
+    - name: Upload regression artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: regression-test-results
+        path: |
+          regression_result.json
+          reports/context_bandit/
+        retention-days: 7
+        
+    - name: Create regression failure issue
+      if: failure() && steps.regression.outputs.regression_failed == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          
+          // Read regression result
+          let regressionData = {};
+          try {
+            const data = fs.readFileSync('regression_result.json', 'utf8');
+            regressionData = JSON.parse(data);
+          } catch (e) {
+            console.log('Could not read regression result:', e);
+          }
+          
+          const agentId = '${{ steps.regression.outputs.agent_id }}';
+          const tolerance = '${{ steps.regression.outputs.tolerance }}';
+          
+          // Format verification results
+          let metricsTable = '| Benchmark | Metric | Original | Reproduction | Difference | Status |\n';
+          metricsTable += '|-----------|--------|----------|--------------|------------|--------|\n';
+          
+          if (regressionData.verification_results) {
+            for (const [benchmark, verification] of Object.entries(regressionData.verification_results)) {
+              if (verification.checks) {
+                for (const [metric, check] of Object.entries(verification.checks)) {
+                  const status = check.passed ? '✅ PASS' : '❌ FAIL';
+                  metricsTable += `| ${benchmark} | ${metric} | ${check.original.toFixed(4)} | ${check.reproduction.toFixed(4)} | ${check.diff_pct.toFixed(2)}% | ${status} |\n`;
+                }
+              }
+            }
+          }
+          
+          const issueBody = `
+          ## 🚨 Nightly Regression Test Failed
+          
+          **Agent ID:** \`${agentId}\`
+          **Tolerance:** ±${tolerance}%
+          **Date:** ${new Date().toISOString()}
+          **Workflow:** [${context.runNumber}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+          
+          ### 📊 Metrics Comparison
+          
+          ${metricsTable}
+          
+          ### 🔍 Error Details
+          
+          \`\`\`
+          ${regressionData.error || 'Unknown error during reproduction'}
+          \`\`\`
+          
+          ### 📁 Artifacts
+          
+          - Download full regression test results from the workflow artifacts
+          - Check \`regression_result.json\` for detailed comparison data
+          - Review benchmark reports in \`reports/context_bandit/\`
+          
+          ### 🔧 Possible Causes
+          
+          1. **Code changes** affecting algorithm performance
+          2. **Environment differences** (dependencies, hardware)
+          3. **Non-deterministic behavior** requiring tolerance adjustment
+          4. **Benchmark data corruption** or missing files
+          
+          ### 🛠️ Next Steps
+          
+          1. Review recent commits for performance-affecting changes
+          2. Verify environment consistency with original run
+          3. Consider increasing tolerance if acceptable variance
+          4. Re-run benchmark manually to verify issue persistence
+          
+          ---
+          
+          *This issue was automatically created by the nightly regression test workflow.*
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 Regression FAIL: Agent ${agentId} - Nightly Test ${new Date().toISOString().split('T')[0]}`,
+            body: issueBody,
+            labels: ['regression', 'automated', 'priority-high']
+          });
+          
+    - name: Comment on success
+      if: success()
+      run: |
+        echo "✅ Nightly regression test completed successfully"
+        echo "Agent ${{ steps.regression.outputs.agent_id }} reproduced within ±${{ steps.regression.outputs.tolerance }}% tolerance"
