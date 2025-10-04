@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import routes - use relative imports since uvicorn runs from backend directory
-from routes import problem, analysis
+from routes import problem, analysis, evolution
 
 
 # Global database client
