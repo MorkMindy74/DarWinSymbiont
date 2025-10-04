@@ -41,14 +41,33 @@ class DGMConfig:
     
     def __post_init__(self):
         if self.allowed_tools is None:
+            # Strict default allowlist
             self.allowed_tools = [
-                "str_replace_editor",
-                "bash",
+                "python3",
                 "python",
                 "pytest",
                 "flake8",
-                "mypy"
+                "mypy",
+                "black",
+                "isort",
+                "cat",
+                "head",
+                "tail",
+                "grep",
+                "find",
+                "ls",
+                "pwd"
             ]
+            
+            # Add bash only if explicitly unsafe_allow
+            if self.unsafe_allow:
+                self.allowed_tools.extend([
+                    "bash",
+                    "sh",
+                    "str_replace_editor",
+                    "vim",
+                    "nano"
+                ])
 
 
 class DGMSafetyError(Exception):
