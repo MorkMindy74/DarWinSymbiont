@@ -20,6 +20,9 @@ from shinka.llm import (
     EmbeddingClient,
     BanditBase,
     AsymmetricUCB,
+    LLMCache,
+    CachedLLMClient,
+    CacheConfig,
 )
 from shinka.edit import (
     apply_diff_patch,
