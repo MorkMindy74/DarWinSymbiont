@@ -377,7 +377,7 @@ def run_single_benchmark(config: BenchmarkConfig) -> Dict[str, Any]:
         'llm_queries_while_stuck': simulator.llm_queries_while_stuck,
         'time_to_first_improve': simulator.time_to_first_improve,
         'no_improve_final': simulator.no_improve_steps,
-        'area_under_fitness_curve': np.trapz(simulator.best_fitness_history),
+        'area_under_fitness_curve': np.trapezoid(simulator.best_fitness_history),
     }
     
     # Context-specific metrics for context-aware algorithm
