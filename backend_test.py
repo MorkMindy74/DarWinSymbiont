@@ -578,7 +578,13 @@ class EmergentAPITester:
             ("Health check endpoint", self.test_health_check),
             ("Problem creation", self.test_problem_creation),
             ("Problem analysis with LLM", self.test_problem_analysis),
-            ("Get problem with analysis", self.test_get_problem_with_analysis)
+            ("Get problem with analysis", self.test_get_problem_with_analysis),
+            ("Evolution configuration", self.test_evolution_configure),
+            ("Evolution status check", self.test_evolution_status),
+            ("Evolution start", self.test_evolution_start),
+            ("Monitor evolution status", self.test_monitor_evolution_status),
+            ("Verify generated files", self.test_verify_generated_files),
+            ("Database verification", self.test_database_verification)
         ]
         
         results = {}
