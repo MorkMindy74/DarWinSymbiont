@@ -255,9 +255,21 @@ class EvolutionSimulator:
         self.time_to_first_improve = None
         self.context_history = []
         
-        # Initialize bandit
+        # Initialize bandit based on algorithm type
         models = ["fast_model", "accurate_model", "balanced_model"]
+        
         if config.algorithm == "baseline":
+            # Pure Thompson Sampling (no decay)
+            self.bandit = ThompsonSamplingBandit(
+                arm_names=models,
+                seed=config.seed,
+                prior_alpha=2.0,
+                prior_beta=1.0,
+                auto_decay=1.0,  # No decay
+                reward_mapping="adaptive"
+            )
+        elif config.algorithm == "decay":
+            # Thompson Sampling with decay (no contexts)
             self.bandit = ThompsonSamplingBandit(
                 arm_names=models,
                 seed=config.seed,
@@ -267,6 +279,7 @@ class EvolutionSimulator:
                 reward_mapping="adaptive"
             )
         elif config.algorithm == "context":
+            # Context-Aware Thompson Sampling (full features)
             self.bandit = ContextAwareThompsonSamplingBandit(
                 arm_names=models,
                 seed=config.seed,
@@ -276,6 +289,22 @@ class EvolutionSimulator:
                 prior_beta=1.0,
                 auto_decay=0.99,
                 reward_mapping="adaptive"
+            )
+        elif config.algorithm == "ucb":
+            # UCB1 baseline (import and implement if not exists)
+            from shinka.llm.dynamic_sampling import AsymmetricUCB
+            self.bandit = AsymmetricUCB(
+                arm_names=models,
+                seed=config.seed,
+                c_param=1.4  # Standard UCB1 exploration parameter
+            )
+        elif config.algorithm == "epsilon":
+            # Epsilon-greedy baseline
+            self.bandit = EpsilonGreedyBandit(
+                arm_names=models,
+                seed=config.seed,
+                epsilon=0.1,
+                decay_rate=0.995
             )
         else:
             raise ValueError(f"Unknown algorithm: {config.algorithm}")
