@@ -28,6 +28,10 @@ sys.path.insert(0, '/app')
 from shinka.llm.dynamic_sampling import ThompsonSamplingBandit, ContextAwareThompsonSamplingBandit
 from shinka.dedup import create_dedup_manager
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # DGM integration (optional)
 try:
     from adapters.dgm_runner import DGMRunner, DGMConfig, run_dgm_swe_bench_quick, run_dgm_polyglot_quick
