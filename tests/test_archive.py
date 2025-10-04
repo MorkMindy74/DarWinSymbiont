@@ -320,7 +320,7 @@ class TestArchiveIntegration:
             
             manifest = archive.get_agent_manifest(agent_id)
             
-            # Check required keys
+            # Check required keys (original)
             required_keys = [
                 "agent_id", "parent_id", "timestamp", "git_commit", "branch", 
                 "dirty", "env", "seeds", "evo_config_path", "evo_config_inline",
@@ -330,12 +330,37 @@ class TestArchiveIntegration:
             for key in required_keys:
                 assert hasattr(manifest, key), f"Missing required key: {key}"
             
+            # Check production-grade enrichment keys
+            enrichment_keys = [
+                "benchmarks_full", "complexity_metrics", "validation_levels",
+                "cost_breakdown", "artifact_refs"
+            ]
+            
+            for key in enrichment_keys:
+                assert hasattr(manifest, key), f"Missing enrichment key: {key}"
+            
             # Check DGM compatibility keys
             dgm_compat = manifest.dgm_compat
             assert "repo_layout_ref" in dgm_compat
             assert "prompts_used" in dgm_compat
             assert "swe_bench_commit" in dgm_compat
             assert "polyglot_prepared" in dgm_compat
+            
+            # Validate enrichment field structures
+            complexity = manifest.complexity_metrics
+            assert "lines_of_code_total" in complexity or "lines_of_code_delta" in complexity
+            assert "cyclomatic_complexity" in complexity
+            assert "coupling_between_objects" in complexity
+            
+            validation = manifest.validation_levels
+            assert "static_checks" in validation
+            assert "unit_tests" in validation
+            
+            cost_bd = manifest.cost_breakdown
+            assert "mock_model" in cost_bd
+            assert isinstance(cost_bd["mock_model"], dict)
+            assert "queries" in cost_bd["mock_model"]
+            assert "cost_usd" in cost_bd["mock_model"]
     
     def test_diff_patch_applied_on_dirty_tree(self):
         """Test diff patch creation and application on dirty git tree."""
