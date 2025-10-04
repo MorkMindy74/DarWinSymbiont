@@ -1,0 +1,13 @@
+,,final_fitness,final_fitness,final_fitness,llm_queries_total,llm_queries_total,llm_queries_while_stuck,llm_queries_while_stuck,time_to_first_improve,time_to_first_improve,area_under_curve,area_under_curve,context_switches,context_switches,oscillation_count,oscillation_count,fitness_variance,fitness_variance,stuck_periods_count,stuck_periods_count
+,,mean,std,count,mean,std,mean,std,median,std,mean,std,mean,std,mean,max,mean,std,mean,std
+algorithm,benchmark,,,,,,,,,,,,,,,,,,,
+baseline,synthetic,1.0,0.0,3,1000.0,0.0,916.3333,22.301,0.0,0.0,979.8942,1.5929,0.0,0.0,0.0,0,0.0065,0.001,916.3333,22.301
+baseline,toy,0.9961,0.0067,3,833.3333,288.6751,744.0,282.3562,0.0,0.5774,799.2335,305.3951,0.0,0.0,0.0,0,0.0057,0.0047,744.0,282.3562
+baseline,tsp,0.5187,0.4345,3,766.6667,404.1452,670.6667,423.3678,5.0,7.6376,477.2032,429.1247,0.0,0.0,0.0,0,0.0153,0.0133,670.6667,423.3678
+context,synthetic,1.0,0.0,3,1000.0,0.0,916.3333,22.301,0.0,0.0,979.8942,1.5929,3.0,2.0,0.0,0,0.0065,0.001,916.3333,22.301
+context,toy,1.0,0.0,3,833.3333,288.6751,756.3333,292.1666,0.0,0.5774,808.7882,291.8439,3.0,2.0,0.0,0,0.007,0.0065,756.3333,292.1666
+context,tsp,0.6509,0.5307,3,766.6667,404.1452,676.3333,428.3507,5.0,7.6376,520.7529,453.3155,6.3333,1.1547,0.0,0,0.0222,0.0192,676.3333,428.3507
+decay,toy,0.9884,,1,500.0,,419.0,,1.0,,446.8813,,0.0,,0.0,0,0.0111,,419.0,
+epsilon,toy,1.0,,1,500.0,,377.0,,1.0,,455.9645,,0.0,,0.0,0,0.0341,,377.0,
+ucb,toy,0.9311,,1,500.0,,416.0,,1.0,,446.3194,,0.0,,0.0,0,0.0097,,416.0,
+ucb,tsp,0.0385,,1,300.0,,182.0,,0.0,,7.9042,,0.0,,0.0,0,0.0001,,182.0,
