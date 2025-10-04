@@ -582,7 +582,8 @@ class ThompsonSamplingBandit(BanditBase):
         shift_by_parent: bool = True,
         prior_alpha: float = 1.0,  # Prior success count
         prior_beta: float = 1.0,   # Prior failure count
-        reward_scaling: float = 1.0,  # Scale rewards for Beta updates
+        reward_mapping: str = "adaptive",  # "adaptive", "direct", "sigmoid"
+        reward_scaling: float = 1.0,  # Scale rewards for adaptive/sigmoid mapping
         **kwargs: Any,
     ):
         super().__init__(
