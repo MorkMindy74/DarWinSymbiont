@@ -99,7 +99,7 @@ async def get_analysis(problem_id: str, db: Optional[AsyncIOMotorDatabase] = Dep
 async def generate_code(
     problem_id: str,
     code_type: str = "evaluate",
-    db: AsyncIOMotorDatabase = None
+    db: Optional[AsyncIOMotorDatabase] = Depends(get_db)
 ):
     """
     Generate evaluate.py or initial.py code
