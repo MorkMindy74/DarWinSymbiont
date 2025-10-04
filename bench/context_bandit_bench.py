@@ -314,6 +314,72 @@ class MockLLMScorer:
         final_fitness = base_fitness * context_modifier - repetition_penalty
         
         return np.clip(final_fitness + noise, 0, 1)
+    
+    def _dgm_function(self, solution: np.ndarray, context_info: Dict) -> float:
+        """DGM benchmark scoring function (mock simulation)."""
+        
+        # For mock runs, simulate DGM-like behavior without actual DGM execution
+        if self.dgm_type == "dgm_swe":
+            # SWE-bench simulation: success rate depends on solution quality
+            base_success_rate = self.dgm_baseline_fitness
+            
+            # Solution quality affects success probability
+            solution_quality = np.mean(np.abs(solution))  # Simple quality metric
+            quality_bonus = np.tanh(solution_quality) * 0.3
+            
+            # Context affects performance
+            context_modifier = 1.0
+            if context_info:
+                no_improve_steps = context_info.get('no_improve_steps', 0)
+                if no_improve_steps > 10:  # Stuck - lower performance
+                    context_modifier *= 0.8
+                
+                gen_progress = context_info.get('gen_progress', 0.5)
+                if gen_progress > 0.7:  # Late stage - higher precision
+                    context_modifier *= 1.2
+            
+            success_prob = (base_success_rate + quality_bonus) * context_modifier
+            
+            # Stochastic pass/fail based on probability
+            if self.rng.random() < success_prob:
+                fitness = 0.8 + 0.2 * self.rng.random()  # Success range
+            else:
+                fitness = 0.1 + 0.3 * self.rng.random()  # Failure range
+            
+        elif self.dgm_type == "dgm_polyglot":
+            # Polyglot simulation: multilingual coding performance
+            base_performance = self.dgm_baseline_fitness
+            
+            # Multi-dimensional solution affects different language performance
+            lang_scores = []
+            for i, lang_val in enumerate(solution[:3]):  # Top 3 languages
+                lang_performance = base_performance + 0.2 * np.sin(lang_val * np.pi)
+                lang_scores.append(lang_performance)
+            
+            # Overall fitness is geometric mean of language scores
+            if lang_scores:
+                fitness = np.power(np.prod([max(0.01, score) for score in lang_scores]), 1/len(lang_scores))
+            else:
+                fitness = base_performance
+            
+            # Context adaptation
+            if context_info:
+                no_improve_steps = context_info.get('no_improve_steps', 0)
+                if no_improve_steps > 15:
+                    # Breakthrough possibility in stuck situations
+                    if self.rng.random() < 0.08:
+                        fitness *= 1.4
+                    else:
+                        fitness *= 0.7
+        
+        else:
+            fitness = self.dgm_baseline_fitness
+        
+        # Add noise consistent with DGM variability
+        noise_level = 0.05
+        noise = self.rng.normal(0, noise_level)
+        
+        return np.clip(fitness + noise, 0, 1)
 
 
 class EvolutionSimulator:
