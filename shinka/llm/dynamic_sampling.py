@@ -743,9 +743,8 @@ class ThompsonSamplingBandit(BanditBase):
             
         r = r_raw - baseline
         
-        # Convert reward to success probability using sigmoid
-        # Positive rewards -> higher probability of success
-        success_prob = self._sigmoid(r)
+        # Convert reward to success probability using selected mapping
+        success_prob = self._reward_to_success_probability(r, baseline)
         
         # Update Beta parameters
         # We treat this as a Bernoulli trial with success probability based on reward
