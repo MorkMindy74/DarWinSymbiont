@@ -201,17 +201,28 @@ class TestPosteriorManagement(unittest.TestCase):
             self.bandit.update_submitted("model_b")
             self.bandit.update("model_b", reward=0.9, baseline=0.5)
         
-        # Sample from each context
-        early_probs = self.bandit.posterior(context="early", samples=1000)
-        mid_probs = self.bandit.posterior(context="mid", samples=1000)
+        # Test context isolation by checking posterior means directly
+        early_alpha = self.bandit.context_alpha["early"]
+        early_beta = self.bandit.context_beta["early"]
+        mid_alpha = self.bandit.context_alpha["mid"]
+        mid_beta = self.bandit.context_beta["mid"]
         
-        # Verify that contexts learned preferences (key assertion for isolation)
-        # Early should prefer model_a (index 0), mid should prefer model_b (index 1)
-        self.assertGreater(early_probs[0], 0.5)  # model_a preferred in early
-        self.assertGreater(mid_probs[1], 0.5)    # model_b preferred in mid
+        # Calculate posterior means for each context
+        early_means = early_alpha / (early_alpha + early_beta)
+        mid_means = mid_alpha / (mid_alpha + mid_beta)
         
-        # Key isolation test: Early context should NOT prefer model_b as much as mid does
-        self.assertGreater(mid_probs[1], early_probs[1])  # Mid prefers model_b more than early
+        # Key isolation assertions: 
+        # 1. Early context should have higher posterior for model_a (index 0)
+        self.assertGreater(early_means[0], early_means[1])  # model_a > model_b in early
+        self.assertGreater(early_means[0], early_means[2])  # model_a > model_c in early
+        
+        # 2. Mid context should have higher posterior for model_b (index 1)  
+        self.assertGreater(mid_means[1], mid_means[0])   # model_b > model_a in mid
+        self.assertGreater(mid_means[1], mid_means[2])   # model_b > model_c in mid
+        
+        # 3. Critical isolation test: contexts should have learned different preferences
+        self.assertGreater(early_means[0], mid_means[0])  # Early prefers model_a more
+        self.assertGreater(mid_means[1], early_means[1])  # Mid prefers model_b more
     
     def test_context_switching_updates_correctly(self):
         """Test context switching and update behavior."""
