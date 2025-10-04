@@ -3,8 +3,8 @@ Analysis Service for problem processing
 """
 import json
 from typing import Dict, Any
-from .llm_service import LLMService
-from ..models.problem import (
+from backend.services.llm_service import LLMService
+from backend.models.problem import (
     ProblemInput, 
     ProblemAnalysis,
     ParameterSuggestion,
