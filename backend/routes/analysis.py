@@ -64,7 +64,7 @@ async def analyze_problem(
 
 
 @router.get("/{problem_id}", response_model=ProblemAnalysis)
-async def get_analysis(problem_id: str, db: AsyncIOMotorDatabase = None):
+async def get_analysis(problem_id: str, db: Optional[AsyncIOMotorDatabase] = Depends(get_db)):
     """
     Get existing analysis for a problem
     
