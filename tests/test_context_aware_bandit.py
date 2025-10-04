@@ -261,8 +261,16 @@ class TestSelectionConsistency(unittest.TestCase):
             best_fitness_history=[0.1, 0.3, 0.5]
         )
         
-        # Multiple selections should be identical with same state
+        # Add some updates to create distinct posteriors
+        for i in range(5):
+            self.bandit.update_submitted("fast_model")
+            self.bandit.update("fast_model", reward=0.8, baseline=0.5)
+        
+        # Reset RNG to same state for deterministic sampling
+        self.bandit.rng = np.random.RandomState(42)
         selection1 = self.bandit.posterior()
+        
+        self.bandit.rng = np.random.RandomState(42)  # Reset to same state
         selection2 = self.bandit.posterior()
         
         np.testing.assert_array_equal(selection1, selection2)
