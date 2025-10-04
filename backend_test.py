@@ -258,94 +258,61 @@ class EmergentAPITester:
             logger.error(f"❌ Get problem with analysis failed: {e}")
             return False, f"Get problem with analysis error: {e}"
 
-def test_complete_minimal_benchmark():
-    """Test 5: Complete minimal benchmark run"""
-    logger.info("Testing complete minimal benchmark run...")
-    
-    try:
-        from bench.context_bandit_bench import run_single_benchmark, BenchmarkConfig
+    async def run_all_tests(self) -> Dict[str, Dict[str, Any]]:
+        """Run all backend tests and return results"""
+        logger.info("Starting EMERGENT Platform backend test suite...")
+        logger.info(f"Testing against: {self.base_url}")
         
-        # Create temporary output directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            config = BenchmarkConfig(
-                benchmark="toy",
-                algorithm="baseline",
-                seed=42,
-                budget_steps=50,  # Minimal run
-                output_dir=temp_dir
-            )
+        tests = [
+            ("Health check endpoint", self.test_health_check),
+            ("Problem creation", self.test_problem_creation),
+            ("Problem analysis with LLM", self.test_problem_analysis),
+            ("Get problem with analysis", self.test_get_problem_with_analysis)
+        ]
+        
+        results = {}
+        
+        for test_name, test_func in tests:
+            logger.info(f"\n{'='*60}")
+            logger.info(f"Running: {test_name}")
+            logger.info(f"{'='*60}")
             
-            # Run benchmark
-            logger.info("Running minimal benchmark (50 steps)...")
-            metrics = run_single_benchmark(config)
-            
-            # Verify metrics
-            required_metrics = [
-                'run_id', 'algorithm', 'benchmark', 'seed',
-                'final_best_fitness', 'llm_queries_total',
-                'llm_queries_while_stuck', 'time_to_first_improve',
-                'no_improve_final', 'area_under_fitness_curve'
-            ]
-            
-            for metric in required_metrics:
-                assert metric in metrics, f"Missing metric: {metric}"
-            
-            logger.info(f"✅ Benchmark completed: final_fitness={metrics['final_best_fitness']:.3f}")
-            
-            # Verify CSV output
-            output_path = Path(temp_dir) / "baseline" / "toy" / "run_42.csv"
-            assert output_path.exists(), f"CSV output not found: {output_path}"
-            
-            # Read and verify CSV content
-            with open(output_path, 'r') as f:
-                reader = csv.DictReader(f)
-                rows = list(reader)
+            try:
+                success, message = await test_func()
+                results[test_name] = {
+                    'success': success,
+                    'message': message
+                }
                 
-            assert len(rows) == 50, f"Expected 50 rows, got {len(rows)}"
-            
-            # Verify CSV columns
-            expected_columns = [
-                'run_id', 'algo', 'benchmark', 'seed', 'step', 'context',
-                'fitness', 'best_fitness', 'llm_queries', 'llm_queries_cum',
-                'time_ms', 'gen_progress', 'no_improve_steps', 'fitness_slope',
-                'pop_diversity', 'selected_model', 'improvement'
-            ]
-            
-            first_row = rows[0]
-            for col in expected_columns:
-                assert col in first_row, f"Missing CSV column: {col}"
-            
-            logger.info("✅ CSV output verified with correct columns")
-            
-            # Test context-aware benchmark
-            config_context = BenchmarkConfig(
-                benchmark="synthetic",
-                algorithm="context",
-                seed=42,
-                budget_steps=50,
-                output_dir=temp_dir
-            )
-            
-            logger.info("Running context-aware benchmark (50 steps)...")
-            metrics_context = run_single_benchmark(config_context)
-            
-            # Verify context-specific metrics
-            assert 'context_switch_count' in metrics_context, "Missing context_switch_count"
-            assert 'context_dwell_times' in metrics_context, "Missing context_dwell_times"
-            
-            logger.info(f"✅ Context-aware benchmark completed: switches={metrics_context['context_switch_count']}")
-            
-            # Verify no runtime errors occurred
-            assert metrics['final_best_fitness'] >= 0, "Negative fitness indicates error"
-            assert metrics['llm_queries_total'] == 50, f"Expected 50 queries, got {metrics['llm_queries_total']}"
-            
-            logger.info("✅ No runtime errors detected")
-            
-        return True, "Complete minimal benchmark run working correctly"
+                if success:
+                    logger.info(f"✅ PASSED: {test_name}")
+                else:
+                    logger.error(f"❌ FAILED: {test_name} - {message}")
+                    
+            except Exception as e:
+                logger.error(f"❌ ERROR: {test_name} - {e}")
+                results[test_name] = {
+                    'success': False,
+                    'message': f"Unexpected error: {e}"
+                }
         
-    except Exception as e:
-        logger.error(f"❌ Complete benchmark test failed: {e}")
-        return False, f"Complete benchmark error: {e}"
+        # Summary
+        logger.info(f"\n{'='*60}")
+        logger.info("TEST SUMMARY")
+        logger.info(f"{'='*60}")
+        
+        passed = sum(1 for r in results.values() if r['success'])
+        total = len(results)
+        
+        for test_name, result in results.items():
+            status = "✅ PASS" if result['success'] else "❌ FAIL"
+            logger.info(f"{status}: {test_name}")
+            if not result['success']:
+                logger.info(f"    Error: {result['message']}")
+        
+        logger.info(f"\nOverall: {passed}/{total} tests passed")
+        
+        return results
 
 def run_all_tests():
     """Run all backend tests and return results"""
