@@ -378,7 +378,8 @@ class EvolutionSimulator:
                 self.bandit = AsymmetricUCB(
                     arm_names=models,
                     seed=config.seed,
-                    c_param=1.4  # Standard UCB1 exploration parameter
+                    exploration_coef=1.4,  # Standard UCB1 exploration parameter
+                    epsilon=0.1
                 )
             except ImportError:
                 logger.warning("AsymmetricUCB not available, using Thompson baseline")
