@@ -122,98 +122,88 @@ class EmergentAPITester:
             logger.error(f"❌ Problem creation failed: {e}")
             return False, f"Problem creation error: {e}"
 
-def test_context_aware_functionality():
-    """Test 3: Context-Aware functionality"""
-    logger.info("Testing Context-Aware Thompson Sampling functionality...")
-    
-    try:
-        from shinka.llm.dynamic_sampling import ContextAwareThompsonSamplingBandit
+    async def test_problem_analysis(self) -> tuple[bool, str]:
+        """Test 3: Problem analysis with LLM"""
+        logger.info("Testing problem analysis endpoint...")
         
-        # Test context-aware bandit creation
-        bandit = ContextAwareThompsonSamplingBandit(
-            arm_names=["fast_model", "accurate_model", "balanced_model"],
-            contexts=["early", "mid", "late", "stuck"],
-            seed=42,
-            prior_alpha=1.0,
-            prior_beta=1.0
-        )
-        logger.info("✅ Context-Aware bandit created successfully")
+        if not self.created_problem_id:
+            return False, "No problem_id available for analysis test"
         
-        # Test context switching
-        initial_context = bandit.current_context
-        logger.info(f"Initial context: {initial_context}")
-        
-        # Update context with early phase parameters
-        new_context = bandit.update_context(
-            generation=5,
-            total_generations=100,
-            no_improve_steps=2,
-            best_fitness_history=[0.1, 0.2, 0.3, 0.4, 0.45],
-            population_diversity=0.8
-        )
-        logger.info(f"✅ Context update successful: {new_context}")
-        
-        # Test that context switching works
-        # Add enough samples to allow switching
-        for _ in range(10):
-            bandit.update_submitted("fast_model")
-            bandit.update("fast_model", reward=0.7, baseline=0.5)
-        
-        # Switch to stuck context with clear signal
-        stuck_context = bandit.update_context(
-            generation=50,
-            total_generations=100,
-            no_improve_steps=20,  # Clearly stuck
-            best_fitness_history=[0.5, 0.5, 0.5, 0.5, 0.5],
-            population_diversity=0.2
-        )
-        logger.info(f"✅ Context switching working: {initial_context} -> {stuck_context}")
-        
-        # Test different posteriors per context
-        # Update different arms in different contexts
-        bandit.current_context = "early"
-        for _ in range(5):
-            bandit.update_submitted("fast_model")
-            bandit.update("fast_model", reward=0.9, baseline=0.5)  # Fast model good in early
-        
-        bandit.current_context = "stuck"
-        for _ in range(5):
-            bandit.update_submitted("accurate_model")
-            bandit.update("accurate_model", reward=0.9, baseline=0.5)  # Accurate model good when stuck
-        
-        # Check that contexts learned different preferences
-        early_posterior = bandit.posterior(context="early", samples=100)
-        stuck_posterior = bandit.posterior(context="stuck", samples=100)
-        
-        # Fast model should be preferred in early, accurate model in stuck
-        fast_model_idx = 0
-        accurate_model_idx = 1
-        
-        logger.info(f"Early context posterior: {early_posterior}")
-        logger.info(f"Stuck context posterior: {stuck_posterior}")
-        
-        # Verify different preferences (allowing some tolerance for randomness)
-        if early_posterior[fast_model_idx] > stuck_posterior[fast_model_idx]:
-            logger.info("✅ Context-specific learning verified: fast_model preferred in early")
-        else:
-            logger.warning("⚠️ Context-specific learning may not be strong enough")
-        
-        if stuck_posterior[accurate_model_idx] > early_posterior[accurate_model_idx]:
-            logger.info("✅ Context-specific learning verified: accurate_model preferred when stuck")
-        else:
-            logger.warning("⚠️ Context-specific learning may not be strong enough")
-        
-        # Test context statistics
-        stats = bandit.get_context_stats()
-        assert "current_context" in stats, "Context stats missing current_context"
-        assert "contexts" in stats, "Context stats missing contexts"
-        logger.info("✅ Context statistics working")
-        
-        return True, "Context-Aware functionality working correctly"
-        
-    except Exception as e:
-        logger.error(f"❌ Context-Aware test failed: {e}")
-        return False, f"Context-Aware error: {e}"
+        try:
+            url = f"{self.base_url}/api/analysis/analyze/{self.created_problem_id}"
+            headers = {"Content-Type": "application/json"}
+            
+            logger.info("Calling LLM analysis (may take 5-10 seconds)...")
+            async with self.session.post(url, json=TSP_TEST_DATA, headers=headers) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    return False, f"Analysis failed with status {response.status}: {error_text}"
+                
+                data = await response.json()
+                
+                # Verify expected analysis fields
+                required_fields = [
+                    "problem_id", "problem_characterization", "complexity_assessment",
+                    "key_challenges", "parameter_suggestions", "constraints_analysis",
+                    "solution_strategy", "estimated_search_space", "recommended_evolution_config",
+                    "analysis_timestamp"
+                ]
+                
+                for field in required_fields:
+                    if field not in data:
+                        return False, f"Missing field in analysis response: {field}"
+                
+                # Verify problem_id matches
+                if data["problem_id"] != self.created_problem_id:
+                    return False, "Problem ID mismatch in analysis response"
+                
+                # Verify key_challenges is a list
+                if not isinstance(data["key_challenges"], list):
+                    return False, "key_challenges should be a list"
+                
+                # Verify parameter_suggestions is a list of objects
+                if not isinstance(data["parameter_suggestions"], list):
+                    return False, "parameter_suggestions should be a list"
+                
+                for param in data["parameter_suggestions"]:
+                    required_param_fields = ["name", "value", "description", "rationale"]
+                    for field in required_param_fields:
+                        if field not in param:
+                            return False, f"Missing field in parameter suggestion: {field}"
+                
+                # Verify constraints_analysis is a list of objects
+                if not isinstance(data["constraints_analysis"], list):
+                    return False, "constraints_analysis should be a list"
+                
+                for constraint in data["constraints_analysis"]:
+                    required_constraint_fields = ["constraint_type", "description", "importance", "impact_on_solution"]
+                    for field in required_constraint_fields:
+                        if field not in constraint:
+                            return False, f"Missing field in constraint analysis: {field}"
+                
+                # Verify recommended_evolution_config is a dict
+                if not isinstance(data["recommended_evolution_config"], dict):
+                    return False, "recommended_evolution_config should be a dict"
+                
+                # Check for TSP-specific content (basic validation)
+                analysis_text = (data["problem_characterization"] + " " + 
+                               data["complexity_assessment"] + " " + 
+                               data["solution_strategy"]).lower()
+                
+                tsp_keywords = ["tsp", "traveling", "salesman", "route", "city", "cities", "distance"]
+                if not any(keyword in analysis_text for keyword in tsp_keywords):
+                    logger.warning("⚠️ Analysis may not be TSP-specific")
+                
+                logger.info(f"✅ Analysis completed successfully")
+                logger.info(f"Problem characterization: {data['problem_characterization'][:100]}...")
+                logger.info(f"Key challenges: {data['key_challenges']}")
+                logger.info(f"Parameter suggestions count: {len(data['parameter_suggestions'])}")
+                
+                return True, f"Analysis successful with {len(data['key_challenges'])} challenges and {len(data['parameter_suggestions'])} parameter suggestions"
+                
+        except Exception as e:
+            logger.error(f"❌ Problem analysis failed: {e}")
+            return False, f"Problem analysis error: {e}"
 
 def test_benchmark_harness_integration():
     """Test 4: Benchmark harness integration"""
