@@ -12,7 +12,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import routes
-from backend.routes import problem, analysis
+try:
+    # Try relative imports first (when run as module)
+    from routes import problem, analysis
+except ImportError:
+    # Fall back to absolute imports
+    from backend.routes import problem, analysis
 
 
 # Global database client
