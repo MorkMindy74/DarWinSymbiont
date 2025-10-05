@@ -152,7 +152,7 @@ class ShinkaEvolutionBridge:
         
         # Get programs for this generation
         cursor = conn.execute("""
-            SELECT id, generation, island_id, code, metrics, parent_id
+            SELECT id, generation, island_idx, code, public_metrics, parent_id
             FROM programs
             WHERE generation = ?
         """, (generation,))
