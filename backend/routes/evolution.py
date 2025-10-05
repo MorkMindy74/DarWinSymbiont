@@ -280,16 +280,23 @@ async def evolution_websocket(websocket: WebSocket, session_id: str):
             "message": "WebSocket connected"
         })
         
-        # Keep connection alive
+        # Keep connection alive with heartbeat
         while True:
-            # Wait for messages from client (ping/pong)
-            data = await websocket.receive_text()
-            
-            # Echo back
-            await websocket.send_json({
-                "type": "pong",
-                "data": data
-            })
+            try:
+                # Wait for messages from client with timeout (non-blocking)
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
+                
+                # Echo back
+                await websocket.send_json({
+                    "type": "pong",
+                    "data": data
+                })
+            except asyncio.TimeoutError:
+                # Send heartbeat ping if no message received
+                await websocket.send_json({
+                    "type": "heartbeat",
+                    "timestamp": datetime.now().isoformat()
+                })
     
     except WebSocketDisconnect:
         await connection_manager.disconnect(websocket, session_id)
