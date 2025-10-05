@@ -159,13 +159,13 @@ class ShinkaEvolutionBridge:
         
         programs = []
         for row in cursor.fetchall():
-            prog_id, gen, island_id, code, metrics_json, parent_id = row
+            prog_id, gen, island_idx, code, metrics_json, parent_id = row
             metrics = json.loads(metrics_json) if metrics_json else {}
             
             programs.append({
                 "id": prog_id,
                 "generation": gen,
-                "island_id": island_id,
+                "island_id": island_idx,
                 "code": code,
                 "metrics": metrics,
                 "parent_id": parent_id,
