@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+// Dynamic backend URL: use relative path when accessed from preview, localhost otherwise
+const getBackendURL = () => {
+  // If accessed from preview domain, use relative URLs (proxy will route to backend)
+  if (window.location.hostname.includes('preview.emergentagent.com')) {
+    return window.location.origin; // Same origin, proxy routes /api/* to backend
+  }
+  // Otherwise use localhost
+  return import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+};
+
+const BACKEND_URL = getBackendURL();
 
 const api = axios.create({
   baseURL: BACKEND_URL,
