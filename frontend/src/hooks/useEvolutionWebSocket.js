@@ -22,11 +22,17 @@ export function useEvolutionWebSocket(sessionId) {
   useEffect(() => {
     if (!sessionId) return;
 
-    // Construct WebSocket URL
+    // Construct WebSocket URL with dynamic detection (same logic as api.js)
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = import.meta.env.VITE_BACKEND_URL
-      ? new URL(import.meta.env.VITE_BACKEND_URL).host
-      : 'localhost:8001';
+    let host;
+    
+    // If accessed from preview domain, use same host (proxy will route)
+    if (window.location.hostname.includes('preview.emergentagent.com')) {
+      host = window.location.host;
+    } else {
+      // Otherwise use localhost
+      host = 'localhost:8001';
+    }
     
     const wsUrl = `${protocol}//${host}/api/evolution/ws/${sessionId}`;
 
