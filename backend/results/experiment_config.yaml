@@ -1,6 +1,6 @@
 database_config:
   archive_size: 20
-  db_path: results/tmp/evo_e791694e/evolution.db
+  db_path: results/tmp/evo_7e0c36ad/evolution.db
   elite_selection_ratio: 0.3
   enforce_island_separation: true
   exploitation_alpha: 1.0
@@ -23,7 +23,7 @@ evolution_config:
   - on_finish
   code_embed_sim_threshold: 1.0
   embedding_model: null
-  init_program_path: /tmp/evo_e791694e/initial.py
+  init_program_path: /tmp/evo_7e0c36ad/initial.py
   job_type: local
   language: python
   llm_cache_enabled: true
@@ -50,7 +50,7 @@ evolution_config:
   meta_rec_interval: null
   novelty_llm_kwargs: {}
   novelty_llm_models: null
-  num_generations: 5
+  num_generations: 3
   patch_type_probs:
   - 1.0
   patch_types:
@@ -60,8 +60,8 @@ evolution_config:
   use_text_feedback: false
 job_config:
   conda_env: null
-  eval_program_path: /tmp/evo_e791694e/evaluate.py
+  eval_program_path: /tmp/evo_7e0c36ad/evaluate.py
   extra_cmd_args: {}
   time: 00:10:00
 results_directory: results
-timestamp: '2025-10-05T07:23:59.863175'
+timestamp: '2025-10-05T07:25:16.496613'
