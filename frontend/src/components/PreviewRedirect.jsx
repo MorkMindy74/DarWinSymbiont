@@ -1,26 +1,15 @@
-import React, { useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React from 'react';
+import { AlertCircle, X } from 'lucide-react';
 
 /**
- * Component to redirect from preview to localhost with instructions
+ * Component to show warning about preview limitations (no redirect)
  */
 function PreviewRedirect() {
+  const [dismissed, setDismissed] = React.useState(false);
   const isPreview = window.location.hostname.includes('preview.emergentagent.com');
 
-  useEffect(() => {
-    // Auto-redirect after 5 seconds if on preview
-    if (isPreview) {
-      const timer = setTimeout(() => {
-        // Try to redirect to localhost
-        window.location.href = 'http://localhost:3000';
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isPreview]);
-
-  if (!isPreview) {
-    return null; // Don't show anything if already on localhost
+  if (!isPreview || dismissed) {
+    return null; // Don't show if not on preview or dismissed
   }
 
   return (
