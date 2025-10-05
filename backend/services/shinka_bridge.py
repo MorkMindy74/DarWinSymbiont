@@ -215,9 +215,9 @@ class ShinkaEvolutionBridge:
         
         conn = sqlite3.connect(str(actual_db), check_same_thread=False)
         cursor = conn.execute("""
-            SELECT id, generation, island_id, code, metrics
+            SELECT id, generation, island_idx, code, public_metrics
             FROM programs
-            ORDER BY json_extract(metrics, '$.combined_score') DESC
+            ORDER BY combined_score DESC
             LIMIT 1
         """)
         
