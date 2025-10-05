@@ -279,7 +279,7 @@ def generate_initial_program_code(problem_type: str, params: Dict[str, Any]) -> 
     """Generate initial.py code based on problem type"""
     
     if problem_type == "tsp":
-        return f"""
+        return """
 # Initial TSP solution using nearest neighbor heuristic
 
 def solve_tsp(cities, distance_matrix):
@@ -317,11 +317,11 @@ def run_experiment(**kwargs):
     tour = solve_tsp(cities, distance_matrix)
     distance = calculate_tour_length(tour, distance_matrix)
     
-    return {{
+    return {
         'tour': tour,
         'distance': distance,
         'fitness': -distance  # Minimize distance
-    }}
+    }
 """
     
     elif problem_type == "scheduling":
