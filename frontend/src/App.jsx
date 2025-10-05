@@ -5,10 +5,12 @@ import Home from './pages/Home';
 import ProblemInput from './pages/ProblemInput';
 import Analysis from './pages/Analysis';
 import EvolutionDashboard from './pages/EvolutionDashboard';
+import PreviewRedirect from './components/PreviewRedirect';
 
 function App() {
   return (
     <Router>
+      <PreviewRedirect />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
