@@ -39,7 +39,7 @@ export function useEvolutionWebSocket(sessionId) {
     ws.current.onopen = () => {
       console.log('✅ WebSocket connected');
       setIsConnected(true);
-      setEvolutionState(prev => ({ ...prev, status: 'connected' }));
+      setEvolutionState(prev => ({ ...prev, status: 'connected', error: null }));
     };
 
     ws.current.onmessage = (event) => {
