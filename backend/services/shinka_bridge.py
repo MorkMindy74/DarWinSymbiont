@@ -544,7 +544,8 @@ if __name__ == '__main__':
 import sys
 import json
 import importlib.util
-import numpy as np
+import random
+import math
 
 
 def load_program(program_path):
