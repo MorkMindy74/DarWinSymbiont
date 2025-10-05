@@ -174,7 +174,7 @@ class ShinkaEvolutionBridge:
         
         # Get best fitness
         cursor = conn.execute("""
-            SELECT MAX(json_extract(metrics, '$.combined_score'))
+            SELECT MAX(combined_score)
             FROM programs
             WHERE generation <= ?
         """, (generation,))
@@ -182,7 +182,7 @@ class ShinkaEvolutionBridge:
         
         # Get average fitness for this generation
         cursor = conn.execute("""
-            SELECT AVG(json_extract(metrics, '$.combined_score'))
+            SELECT AVG(combined_score)
             FROM programs
             WHERE generation = ?
         """, (generation,))
