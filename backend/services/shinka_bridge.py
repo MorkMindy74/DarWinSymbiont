@@ -452,17 +452,31 @@ def validate_tour(tour, num_cities):
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: python evaluate.py <program_path> <results_dir>")
+    # Parse command line arguments (handles both positional and --flag format)
+    import argparse
+    parser = argparse.ArgumentParser(description='Evaluate TSP program')
+    parser.add_argument('--program_path', type=str, help='Path to program file')
+    parser.add_argument('--results_dir', type=str, help='Path to results directory')
+    
+    # Also support positional arguments for backward compatibility
+    parser.add_argument('positional_args', nargs='*', help='Positional arguments')
+    
+    args = parser.parse_args()
+    
+    # Get program_path and results_dir
+    if args.program_path and args.results_dir:
+        program_path = args.program_path
+        results_dir = args.results_dir
+    elif len(args.positional_args) >= 2:
+        program_path = args.positional_args[0]
+        results_dir = args.positional_args[1]
+    else:
+        print("Usage: python evaluate.py --program_path <path> --results_dir <path>")
+        print("   or: python evaluate.py <program_path> <results_dir>")
         sys.exit(1)
     
-    program_path = sys.argv[1]
-    results_dir = sys.argv[2]
-    
-    # DEBUG: Print received arguments
-    print(f"DEBUG: Received program_path: {{program_path}}")
-    print(f"DEBUG: Received results_dir: {{results_dir}}")
-    print(f"DEBUG: All argv: {{sys.argv}}")
+    print(f"DEBUG: Using program_path: {{program_path}}")
+    print(f"DEBUG: Using results_dir: {{results_dir}}")
     
     # Load program
     program = load_program(program_path)
