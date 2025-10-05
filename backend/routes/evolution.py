@@ -68,9 +68,9 @@ async def configure_evolution(
             detail=f"Analysis for problem {problem_id} not found. Run analysis first."
         )
     
-    # Create session
+    # Create session with shorter path to avoid ShinkaEvolve path duplication bug
     session_id = str(uuid.uuid4())
-    work_dir = Path(f"/tmp/emergent_evolution/{session_id}")
+    work_dir = Path(f"/tmp/evo_{session_id[:8]}")
     
     # Initialize bridge
     bridge = ShinkaEvolutionBridge(session_id, work_dir)
