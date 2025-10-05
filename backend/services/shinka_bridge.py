@@ -261,9 +261,9 @@ class ShinkaEvolutionBridge:
         
         islands = {}
         for row in cursor.fetchall():
-            island_id, latest_gen, total, best, avg = row
-            islands[island_id] = {
-                "island_id": island_id,
+            island_idx, latest_gen, total, best, avg = row
+            islands[island_idx] = {
+                "island_id": island_idx,
                 "latest_generation": latest_gen,
                 "total_programs": total,
                 "best_fitness": float(best) if best else 0.0,
