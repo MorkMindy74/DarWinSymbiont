@@ -109,12 +109,33 @@ class ShinkaEvolutionBridge:
         finally:
             self.is_running = False
     
+    def _find_actual_db_path(self) -> Optional[Path]:
+        """Find the actual database path (handles ShinkaEvolve path duplication)"""
+        # Check expected location first
+        if self.db_path.exists():
+            return self.db_path
+        
+        # Check for nested path (ShinkaEvolve bug)
+        nested_path = self.results_dir / str(self.work_dir) / "evolution.db"
+        if nested_path.exists():
+            return nested_path
+        
+        # Search recursively in results directory
+        try:
+            for db_file in self.results_dir.rglob("evolution.db"):
+                return db_file
+        except Exception:
+            pass
+        
+        return None
+    
     def get_latest_generation(self) -> Optional[int]:
         """Get latest generation from database"""
-        if not self.db_path.exists():
+        actual_db = self._find_actual_db_path()
+        if not actual_db:
             return None
         
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        conn = sqlite3.connect(str(actual_db), check_same_thread=False)
         cursor = conn.execute("SELECT MAX(generation) FROM programs")
         result = cursor.fetchone()
         conn.close()
