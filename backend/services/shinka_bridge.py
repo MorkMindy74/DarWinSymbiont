@@ -43,12 +43,12 @@ class ShinkaEvolutionBridge:
             max_parallel_jobs=user_config.get("max_parallel_jobs", 2),
             llm_models=user_config.get("llm_models", ["azure-gpt-4.1-mini"]),
             init_program_path=str(self.initial_program_path),
-            results_dir=str(self.results_dir),
+            results_dir="./results",  # Use relative path to avoid duplication
             patch_types=user_config.get("patch_types", ["diff"]),
             llm_cache_enabled=True,
-            llm_cache_path=str(self.work_dir / "llm_cache.db"),
+            llm_cache_path="./llm_cache.db",  # Relative path
             archive_enabled=True,
-            archive_root=str(self.work_dir / "archive"),
+            archive_root="./archive",  # Relative path
         )
     
     def create_database_config(self, user_config: Dict[str, Any]) -> DatabaseConfig:
