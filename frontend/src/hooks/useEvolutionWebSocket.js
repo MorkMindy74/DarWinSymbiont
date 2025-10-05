@@ -87,6 +87,12 @@ export function useEvolutionWebSocket(sessionId) {
         break;
 
       case 'generation_complete':
+        console.log('🔥 generation_complete data:', {
+          generation: message.generation,
+          best_fitness: message.best_fitness,
+          avg_fitness: message.avg_fitness,
+          diversity: message.diversity
+        });
         setEvolutionState(prev => ({
           ...prev,
           status: 'running',
