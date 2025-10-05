@@ -1,123 +1,79 @@
 <analysis>
-The trajectory details the incremental development of the ShinkaEvolve framework. Initially, the AI engineer implemented and refined a  and a  system. A  was then introduced, adapting to evolutionary phases. The first major task involved building a comprehensive benchmark harness for this context-aware bandit, including hard-mode benchmarks, ablation studies, hyperparameter sensitivity, and cache testing, culminating in a  system. Subsequently, a robust  system was developed for reproducible agent archiving, featuring manifest enrichment, dirty repo handling, lineage tracking, and a CI regression harness. Most recently, the DarWin Gödel Machine (DGM) was integrated as a git submodule, enabling DGM benchmarks with results archived and reproducible. The AI engineer has successfully completed these complex integrations and is now tasked with building a full React/FastAPI EMERGENT AI-Powered Optimization Platform to provide a problem-aware UI for ShinkaEvolve.
+The AI engineer's work began by confirming user requirements for the EMERGENT: AI-Powered Optimization Platform, a React/FastAPI web application integrating with the existing ShinkaEvolve framework. The plan focused on incremental development, prioritizing Phase 1 (Problem Input) and Phase 2 (Analysis) with WebSocket streaming for real-time updates and no user authentication for the MVP.
+
+The initial implementation involved setting up the FastAPI backend and React frontend structure, including core files, dependencies, and environment variables. Key challenges emerged during this phase: Python import errors, an SQLite threading issue within ShinkaEvolve, difficulties with the external preview URL due to Kubernetes proxy and agent sleep mode, and persistent WebSocket connection errors. The AI engineer systematically addressed these by adjusting import paths, implementing  in ShinkaEvolve's database logic, configuring dynamic URL detection in the frontend, adding WebSocket heartbeats, and debugging database path issues related to ShinkaEvolve's internal directory management. A missing numpy dependency for evaluation was also identified and fixed.
+
+The trajectory concludes with the user reporting connessione negata da localhost, indicating that even after numerous fixes and attempts to guide the user towards using localhost, the local connection is still failing, possibly due to the previous attempt to remove the redirect component.
 </analysis>
 
 <product_requirements>
-The overarching project, ShinkaEvolve, is an evolutionary algorithm framework for code generation/optimization using LLMs. Initial requirements included:
-1.  **Thompson Sampling Bandit:** Dynamic LLM selection, corrected for adaptive reward normalization.
-2.  **Deterministic LLM Caching:** Persistent SQLite-based caching for LLM queries to enhance efficiency.
-3.  **Context-Aware Thompson Sampling:** An advanced bandit adapting to evolutionary phases, maintaining separate beliefs per context.
+The ShinkaEvolve project aims to be an evolutionary algorithm framework for LLM-based code generation/optimization. Previous work established core functionalities: Thompson Sampling (Context-Aware), Deterministic LLM Caching, a low-cost deduplication system, a production-grade  for reproducible agent logging, and Darwin Gödel Machine (DGM) integration for external evaluation/mutation.
 
-These features aimed to make the evolutionary process smarter, faster, and more cost-effective, culminating in a comprehensive benchmark suite and a low-cost deduplication system. A production-grade  for reproducible agent logging and  integration for external evaluation/mutation were also implemented.
-
-The current major requirement is to build the **EMERGENT: AI-Powered Optimization Platform**, a React web application with a FastAPI bridge. This platform must provide an intuitive, 5-phase guided workflow: Problem Input, Analysis & Parameterization, State-of-the-Art Research, Evolution Simulation (real-time via WebSocket), and Results & Comparison. A critical aspect is **problem-aware dynamic adaptation**, where the UI, metrics, visualizations, terminology, research, code generation (for  and ), and LLM commentary all adapt to the specific problem type (e.g., TSP, Circle Packing, Scheduling, Agent Design, Neural Architecture Search). The system needs to be highly usable, performant, seamlessly integrated, and scalable.
+The current major requirement is to build the EMERGENT: AI-Powered Optimization Platform, a React web application with a FastAPI backend. This platform must offer an intuitive, 5-phase guided workflow: Problem Input, Analysis & Parameterization, State-of-the-Art Research, Evolution Simulation (real-time via WebSocket), and Results & Comparison. A critical feature is problem-aware dynamic adaptation, where the UI, metrics, visualizations, terminology, research, code generation (, ), and LLM commentary adapt to specific problem types (e.g., TSP, Scheduling). The platform needs to be highly usable, performant, seamlessly integrated, and scalable. User explicitly confirmed using Emergent Universal Key (with GPT-5 fallback), focusing on Phase 1-2 initially, no authentication for MVP, prioritizing TSP and Scheduling, and WebSocket for real-time updates.
 </product_requirements>
 
 <key_technical_concepts>
--   **Evolutionary Algorithms:** Core framework for optimization.
--   **Bandit Algorithms:** Thompson Sampling (Context-Aware, decayed), Epsilon-Greedy, Asymmetric UCB for LLM selection.
--   **LLM Integration:** Claude, GPT for analysis, code generation, and commentary.
--   **Deterministic Caching:** SQLite-based, SHA256 hashing for LLM queries.
--   **Low-Cost Deduplication:** MinHash/SimHash for mutation filtering.
--   **Agent Archiving:**  for reproducible agent state, manifests, diffs.
--   **DGM Integration:** Git submodule, Docker for external evaluation/mutation.
--   **FastAPI & React:** Backend API bridge and frontend SPA.
--   **WebSockets:** Real-time UI updates.
--   **Problem-Aware Dynamic Systems:** UI/backend adaptation based on problem domain.
+-   **FastAPI & React:** Backend API bridge and frontend SPA for the EMERGENT platform.
+-   **WebSockets:** Real-time updates for evolution simulation.
+-   **Emergent Universal Key:** Unified LLM access (OpenAI, Anthropic, Google).
+-   **MongoDB:** Backend database for the new platform (existing ShinkaEvolve uses SQLite).
+-   **ShinkaEvolve Framework:** Core Python evolutionary algorithm engine.
+-   **Problem-Aware Dynamic Systems:** UI and backend adaptation based on problem domain.
+-   **SQLite Threading:** Issue resolved by  and .
+-   **Docker Compose:** Used for DGM integration, implies containerized environment understanding.
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: Contains GitHub Actions workflows for nightly regression testing of archived agents () and quick DGM benchmarks (). These ensure continuous validation of core functionalities and new integrations.
--   ****: A new module that provides an interface to run DGM evaluations and mutations. It abstracts DGM's Docker-based execution, sandboxing it from the main ShinkaEvolve environment.
--   ****: The central script for running all benchmarks. It was extensively modified to support hard-mode benchmarks (TSP, Toy, Synthetic), additional algorithms (decay, UCB, Epsilon-Greedy), ablation studies, hyperparameter sensitivity, cache testing, and DGM benchmarks. It handles logging to CSV, report generation, and plotting.
--   ****: CLI interface for the  system, allowing users to , , declare -x DEBIAN_FRONTEND="noninteractive"
-declare -x ENABLE_RELOAD="true"
-declare -x GPG_KEY="A035C8C19219BA821ECEA86B64E628F8D684696D"
-declare -x HOME="/root"
-declare -x HOSTNAME="agent-env-5809d24a-9fe7-4363-add5-1acf4ff0158d"
-declare -x KUBERNETES_PORT="tcp://34.118.224.1:443"
-declare -x KUBERNETES_PORT_443_TCP="tcp://34.118.224.1:443"
-declare -x KUBERNETES_PORT_443_TCP_ADDR="34.118.224.1"
-declare -x KUBERNETES_PORT_443_TCP_PORT="443"
-declare -x KUBERNETES_PORT_443_TCP_PROTO="tcp"
-declare -x KUBERNETES_SERVICE_HOST="34.118.224.1"
-declare -x KUBERNETES_SERVICE_PORT="443"
-declare -x KUBERNETES_SERVICE_PORT_HTTPS="443"
-declare -x LANG="C.UTF-8"
-declare -x NEXT_TELEMETRY_DISABLED="1"
-declare -x NODE_VERSION="20"
-declare -x OLDPWD
-declare -x PATH="/root/.venv/bin:/opt/plugins-venv/bin:/opt/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-declare -x PIP_NO_INPUT="1"
-declare -x PLAYWRIGHT_BROWSERS_PATH="/pw-browsers"
-declare -x PLUGIN_VENV_PATH="/opt/plugins-venv"
-declare -x PREVIEW_PROXY_SERVICE_PORT="tcp://34.118.225.58:80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP="tcp://34.118.225.58:80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_ADDR="34.118.225.58"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_PORT="80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_PROTO="tcp"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_HOST="34.118.225.58"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_PORT="80"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_PORT_HTTP="80"
-declare -x PWD="/app"
-declare -x PYTHONUNBUFFERED="1"
-declare -x PYTHON_SHA256="8fb5f9fbc7609fa822cb31549884575db7fd9657cbffb89510b5d7975963a83a"
-declare -x PYTHON_VERSION="3.11.13"
-declare -x SHLVL="1"
-declare -x STRIPE_API_KEY="sk_test_emergent"
-declare -x UV_COMPILE_BYTECODE="1"
-declare -x VIRTUAL_ENV="/root/.venv"
-declare -x base_url="https://demobackend.emergentagent.com"
-declare -x code_server_password="dc209b1b"
-declare -x integration_proxy_url="https://integrations.emergentagent.com"
-declare -x monitor_polling_interval="1"
-declare -x preview_endpoint="https://shinkaevolve.preview.emergentagent.com"
-declare -x run_id="5809d24a-9fe7-4363-add5-1acf4ff0158d",  agents, and execute  for reproducibility.
--   ** & **: New documentation files detailing the Agent Archive and Deduplication systems respectively.
--   ****: Directory for benchmark outputs, containing raw CSV data for each run and aggregated summary reports and plots.
--   ****: A new script to perform safety validations for DGM integration, ensuring secure execution.
--   ****: A separate script for executing regression tests against archived agents, called by the Makefile target.
--   ****: The core module for the  system. It manages agent creation, manifest generation (including enriched DGM-compatible metadata), saving artifacts, and handling agent export/import.
--   ****: The central evolution orchestrator. It was heavily modified to integrate:
-    -   The  (calculates and passes context).
-    -    for deterministic caching.
-    -    to filter mutations.
-    -    for auto-saving agents based on configuration (on best fitness, on finish).
-    -   Logic for handling hyperparameter sensitivity and ablation studies during evolution.
--   ****: Contains all bandit implementations. It was extended with  and modified to accept parameters for decay and ablation studies for the .
--   ****: A new file implementing MinHash and SimHash algorithms for low-cost deduplication of LLM-generated mutations.
--   ****: A Git submodule pointing to the DGM repository. It's kept untouched, serving as an external dependency.
--   ****: New unit tests for the  system, covering list, show, export, import, auto-save, reproduction, manifest schema validation, dirty repo handling, lineage, and graceful failure.
--   ****: New unit tests for the deduplication system.
--   ****: Orchestrates various development tasks, including , , , , , and .
+**Code Architecture Summary:**
+The application follows a standard MERN-like stack (React/FastAPI/MongoDB). The existing  framework serves as a core backend dependency.
+
+-   ****: A new directory created by cloning the  repository. This houses the  core logic.
+    -   : The central orchestrator for evolution, integrated by the FastAPI bridge.
+    -   : Handles SQLite database operations. Modified to include  to resolve threading issues with FastAPI's asynchronous nature.
+-   ****: A new FastAPI application acting as a bridge between the React frontend and .
+    -   : The main FastAPI entry point, configured with CORS, connects to MongoDB, and includes routes from .
+    -   , , : Define API endpoints for problem input, analysis, and the evolution process, including WebSocket handling.
+    -   , , , : Contain business logic for LLM interaction, problem analysis,  integration (e.g., dynamic  and  generation), and WebSocket management.
+    -    & : Manage backend environment variables (including  and ) and Python dependencies.
+-   ****: A new React application built with Vite and Tailwind CSS.
+    -   : Manages routing for different phases (Home, Problem Input, Analysis, Evolution Dashboard).
+    -   , , , : Implement the UI for the 5-phase workflow, with  and  being the most developed, and  containing a basic structure for real-time visualization.
+    -   : Contains sub-components for the  (e.g., , , ).
+    -   : Handles API calls to the FastAPI backend, including dynamic URL detection.
+    -   : Custom React hook for managing WebSocket connections and processing real-time updates from the backend.
+    -   : Stores frontend environment variables, notably , configured for dynamic detection.
+    -   : Vite build configuration, modified to include  for external preview URLs.
 </code_architecture>
 
 <pending_tasks>
 -   Add a bandit arm for DGM_mutator and compare it against the baseline on SWE-bench quick.
 -   (Optional) Port DGM tools into the  directory via adapters with unit tests.
+-   Implement Phase 3: State-of-the-Art Research.
+-   Complete Phase 4: Full Evolution Simulation Dashboard components (currently basic).
+-   Implement Phase 5: Results & Comparison.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary request, the AI engineer successfully completed the integration of the **Darwin Gödel Machine (DGM)** into the ShinkaEvolve framework. This involved:
-1.  **Submodule Integration:** Adding DGM as a git submodule in .
-2.  **Sandbox & Runners:** Creating a Docker Compose profile () and an adapter () to safely execute DGM evaluations/mutations in an isolated environment.
-3.  **Harness Integration:** Extending the benchmark script () to include DGM-specific benchmarks (, ), mapping DGM metrics to the ShinkaEvolve CSV schema.
-4.  **AgentArchive Integration:** Updating the  to capture DGM-specific metadata within the manifest's  block, ensuring reproducibility of DGM runs via .
-5.  **CI & Make:** Creating  targets (Running DGM quick benchmark...
-Building DGM Docker environment...
-docker-compose -f docker-compose.dgm.yml build dgm-sandbox || echo "Docker build failed - using mock mode"
-Docker build failed - using mock mode
-Running minimal SWE-bench sample...
-python -m bench.context_bandit_bench --benchmark dgm_swe --algo context --seed 42 --budget_steps 200 --model mock
-Running Polyglot sample...
-python -m bench.context_bandit_bench --benchmark dgm_polyglot --algo baseline --seed 42 --budget_steps 200 --model mock
-DGM quick benchmark complete.) and a GitHub Actions workflow () for automated DGM benchmarks.
-6.  **Safety & Policy:** Implementing security measures like tool allowlisting, resource monitoring, timeouts, and a safety validation script ().
+Immediately prior to this summary, the AI engineer was focused on resolving persistent WebSocket connection errors and ensuring the EMERGENT platform's core phases (Problem Input, Analysis, and a foundational Evolution Dashboard) were functional. The frontend, backend, and WebSocket communication are now mostly set up for Phases 1, 2, and the skeleton of Phase 4.
 
-The engineer thoroughly tested the DGM integration, including benchmark execution and  for a DGM agent, confirming its functionality. All criteria for safe, reversible, and production-ready DGM integration were met. The previous AI engineer then received new, extensive requirements to build the **EMERGENT: AI-Powered Optimization Platform,** a full React web application with a FastAPI backend to provide a problem-aware UI for ShinkaEvolve. The very last message confirms the understanding of this new task and states the intent to begin by creating the project structure and core components for this new platform.
-</current_work>
+Key achievements in the latest interaction include:
+1.  **Backend Integration:** Successfully cloned DarWin Symbiont, created a FastAPI bridge () for , and established WebSocket routes () for real-time updates.
+2.  **Frontend Workflow:** Implemented ,  (Phase 1),  (Phase 2), and a basic  (Phase 4) pages in React. Recharts was installed for charting capabilities.
+3.  **WebSocket Fixes:** Addressed the  by:
+    *   Adjusting  to dynamically detect the backend URL, mirroring  logic.
+    *   Implementing a heartbeat mechanism in  to prevent premature WebSocket closures.
+    *   Adding basic  message handling in .
+4.  **Database/Path Issues:** Resolved various  and  issues by:
+    *   Correcting Python import paths in backend services and routes.
+    *   Modifying  to use  for SQLite.
+    *   Debugging ShinkaEvolve's internal absolute path generation, and modifying  to manage session directories more robustly (though this was an iterative fix, still a source of subtle issues).
+    *   Installing missing  dependency, which was causing evaluation failures.
+5.  **LLM Key Configuration:** Ensured the backend correctly utilizes the Emergent Universal Key for LLM operations by configuring .
+6.  **Preview URL Troubleshooting:** The AI engineer has extensively debugged external preview issues, attributing many to Kubernetes proxy problems,  sleep mode, and incorrect  configurations. A  component was attempted and then removed.
+
+The very last message from the user, connessione negata da localhost, indicates a new or recurring issue where even direct localhost access is failing, immediately after the  component was disabled.
 
 <optional_next_step>
-Start by setting up the project structure and implementing the core components for the new EMERGENT AI-Powered Optimization Platform.
+Troubleshoot the connessione negata da localhost error, focusing on verifying backend binding and frontend  configuration for localhost access.
 </optional_next_step>
