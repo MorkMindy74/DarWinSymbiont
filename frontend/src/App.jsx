@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import ProblemInput from './pages/ProblemInput';
 import Analysis from './pages/Analysis';
 import EvolutionDashboard from './pages/EvolutionDashboard';
+import Results from './pages/Results';
 import PreviewRedirect from './components/PreviewRedirect';
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
           <Route path="/problem/new" element={<ProblemInput />} />
           <Route path="/analysis/:problemId" element={<Analysis />} />
           <Route path="/evolution/:sessionId" element={<EvolutionDashboard />} />
+          <Route path="/dashboard/:sessionId" element={<EvolutionDashboard />} />
+          <Route path="/results/:sessionId" element={<Results />} />
         </Routes>
       </Layout>
     </Router>
