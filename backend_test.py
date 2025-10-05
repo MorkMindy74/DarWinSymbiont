@@ -414,52 +414,76 @@ class EmergentAPITester:
             return False, f"Evolution start error: {e}"
 
     async def test_monitor_evolution_status(self) -> tuple[bool, str]:
-        """Test 8: Monitor evolution status during execution"""
-        logger.info("Testing evolution status monitoring...")
+        """Test 8: Monitor evolution status during execution - CRITICAL TEST"""
+        logger.info("Testing evolution status monitoring - CRITICAL PATH FIX VERIFICATION...")
         
         if not self.evolution_session_id:
             return False, "No session_id available for evolution monitoring test"
         
         try:
-            # Wait a bit for evolution to start
-            logger.info("Waiting 5-10 seconds for evolution to progress...")
-            await asyncio.sleep(8)
+            # Wait 30 seconds as specified in review request
+            logger.info("Waiting 30 seconds for evolution to progress (as per review request)...")
+            await asyncio.sleep(30)
             
             url = f"{self.base_url}/api/evolution/status/{self.evolution_session_id}"
             
-            async with self.session.get(url) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    return False, f"Evolution monitoring failed with status {response.status}: {error_text}"
+            # Check status multiple times as requested
+            for check_num in range(3):
+                logger.info(f"Status check #{check_num + 1}/3")
                 
-                data = await response.json()
-                
-                # Check if status changed from configured
-                status = data.get("status", "unknown")
-                logger.info(f"Current evolution status: {status}")
-                
-                # Check for runtime info
-                if "is_running" in data:
-                    logger.info(f"Is running: {data['is_running']}")
-                
-                if "latest_generation" in data:
-                    latest_gen = data["latest_generation"]
-                    logger.info(f"Latest generation: {latest_gen}")
+                async with self.session.get(url) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        return False, f"Evolution monitoring failed with status {response.status}: {error_text}"
                     
-                    if latest_gen is not None and latest_gen > 0:
-                        logger.info("✅ Evolution is progressing - generations detected")
+                    data = await response.json()
+                    
+                    # Check if status changed from configured
+                    status = data.get("status", "unknown")
+                    logger.info(f"Current evolution status: {status}")
+                    
+                    # CRITICAL: Check for completion
+                    if status == "completed":
+                        logger.info("✅ Evolution completed successfully!")
+                    elif status == "failed":
+                        logger.error("❌ Evolution failed!")
+                        return False, f"Evolution failed - status: {status}"
+                    
+                    # Check for runtime info
+                    if "is_running" in data:
+                        logger.info(f"Is running: {data['is_running']}")
+                    
+                    if "latest_generation" in data:
+                        latest_gen = data["latest_generation"]
+                        logger.info(f"Latest generation: {latest_gen}")
+                        
+                        if latest_gen is not None and latest_gen > 0:
+                            logger.info("✅ Evolution is progressing - generations detected")
+                        elif latest_gen == 5:
+                            logger.info("✅ Evolution completed all 5 generations!")
+                    
+                    if "best_fitness" in data:
+                        best_fitness = data["best_fitness"]
+                        logger.info(f"Best fitness: {best_fitness}")
+                        
+                        if best_fitness is not None and best_fitness != 0:
+                            logger.info("✅ Non-zero fitness detected - programs are succeeding!")
+                        else:
+                            logger.warning("⚠️ Best fitness is zero or None - all programs may be failing")
+                    
+                    if "islands" in data:
+                        islands = data["islands"]
+                        logger.info(f"Islands info: {len(islands) if islands else 0} islands")
+                        if islands:
+                            logger.info("✅ Islands showing data")
                 
-                if "islands" in data:
-                    islands = data["islands"]
-                    logger.info(f"Islands info: {len(islands) if islands else 0} islands")
-                
-                if "best_solution" in data and data["best_solution"]:
-                    best = data["best_solution"]
-                    logger.info(f"Best solution found: fitness={best.get('fitness', 'N/A')}")
-                
-                logger.info(f"✅ Evolution monitoring successful")
-                
-                return True, f"Evolution monitoring successful: status={status}"
+                # Wait between checks
+                if check_num < 2:
+                    await asyncio.sleep(5)
+            
+            logger.info(f"✅ Evolution monitoring completed")
+            
+            return True, f"Evolution monitoring successful: final_status={status}"
                 
         except Exception as e:
             logger.error(f"❌ Evolution monitoring failed: {e}")
