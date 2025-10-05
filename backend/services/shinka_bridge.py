@@ -144,10 +144,11 @@ class ShinkaEvolutionBridge:
     
     def get_generation_data(self, generation: int) -> Dict[str, Any]:
         """Get all data for a specific generation"""
-        if not self.db_path.exists():
+        actual_db = self._find_actual_db_path()
+        if not actual_db:
             return {}
         
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        conn = sqlite3.connect(str(actual_db), check_same_thread=False)
         
         # Get programs for this generation
         cursor = conn.execute("""
