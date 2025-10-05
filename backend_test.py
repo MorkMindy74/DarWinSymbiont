@@ -32,25 +32,25 @@ logger = logging.getLogger(__name__)
 # Backend URL - using local URL since external URL returns 404
 BACKEND_URL = "http://localhost:8001"
 
-# Test data - TSP (Traveling Salesman Problem)
+# Test data - TSP (Traveling Salesman Problem) - Matching review request
 TSP_TEST_DATA = {
     "problem_type": "tsp",
-    "title": "Test TSP - Evolution Flow",
-    "description": "Find the shortest route to visit 10 cities. This is a test for the full evolution pipeline.",
+    "title": "Final Integration Test",
+    "description": "Complete E2E test with all fixes applied",
     "constraints": {
-        "num_locations": 10,
-        "max_distance": 1000
+        "num_locations": 5,
+        "max_distance": 500
     }
 }
 
-# Evolution configuration for testing
+# Evolution configuration for testing - SHORT test as requested
 EVOLUTION_CONFIG = {
     "num_generations": 5,
     "max_parallel_jobs": 1,
     "llm_models": ["azure-gpt-4.1-mini"],
     "num_islands": 2,
-    "archive_size": 50,
-    "migration_interval": 3
+    "archive_size": 20,
+    "migration_interval": 2
 }
 
 class EmergentAPITester:
