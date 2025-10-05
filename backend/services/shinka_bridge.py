@@ -250,13 +250,13 @@ class ShinkaEvolutionBridge:
         # Get latest generation per island
         cursor = conn.execute("""
             SELECT 
-                island_id,
+                island_idx,
                 MAX(generation) as latest_gen,
                 COUNT(*) as total_programs,
-                MAX(json_extract(metrics, '$.combined_score')) as best_fitness,
-                AVG(json_extract(metrics, '$.combined_score')) as avg_fitness
+                MAX(combined_score) as best_fitness,
+                AVG(combined_score) as avg_fitness
             FROM programs
-            GROUP BY island_id
+            GROUP BY island_idx
         """)
         
         islands = {}
