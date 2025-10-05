@@ -227,13 +227,13 @@ class ShinkaEvolutionBridge:
         if not row:
             return None
         
-        prog_id, generation, island_id, code, metrics_json = row
+        prog_id, generation, island_idx, code, metrics_json = row
         metrics = json.loads(metrics_json) if metrics_json else {}
         
         return {
             "id": prog_id,
             "generation": generation,
-            "island_id": island_id,
+            "island_id": island_idx,
             "code": code,
             "metrics": metrics,
             "fitness": metrics.get("combined_score", 0.0)
