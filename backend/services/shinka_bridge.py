@@ -241,10 +241,11 @@ class ShinkaEvolutionBridge:
     
     def get_island_status(self) -> Dict[int, Dict[str, Any]]:
         """Get status of all islands"""
-        if not self.db_path.exists():
+        actual_db = self._find_actual_db_path()
+        if not actual_db:
             return {}
         
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        conn = sqlite3.connect(str(actual_db), check_same_thread=False)
         
         # Get latest generation per island
         cursor = conn.execute("""
