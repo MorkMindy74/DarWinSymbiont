@@ -403,8 +403,15 @@ import math
 
 def load_program(program_path):
     \"\"\"Load program from path\"\"\"
+    import os
+    if not os.path.exists(program_path):
+        raise FileNotFoundError(f"Program file not found: {{program_path}}")
     spec = importlib.util.spec_from_file_location("program", program_path)
+    if spec is None:
+        raise ImportError(f"Failed to load spec from: {{program_path}}")
     module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise ImportError(f"Spec has no loader: {{program_path}}")
     spec.loader.exec_module(module)
     return module
 
