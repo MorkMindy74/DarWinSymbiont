@@ -618,7 +618,7 @@ def main():
             'combined_score': -best_makespan,
             'public': {
                 'best_makespan': best_makespan,
-                'avg_makespan': np.mean(makespans)
+                'avg_makespan': sum(makespans) / len(makespans)
             },
             'private': {}
         }
