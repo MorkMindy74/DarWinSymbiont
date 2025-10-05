@@ -140,6 +140,11 @@ export function useEvolutionWebSocket(sessionId) {
         // Heartbeat response
         break;
 
+      case 'heartbeat':
+        // Server heartbeat - connection is alive, no action needed
+        console.log('💓 Heartbeat received');
+        break;
+
       default:
         console.warn('Unknown message type:', message.type);
     }
