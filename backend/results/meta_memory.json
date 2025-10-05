@@ -1,7 +1,7 @@
 {
   "unprocessed_programs": [
     {
-      "id": "99d282d6-6cfa-4e18-8fcf-d074ee3f411f",
+      "id": "20e118e2-b4a7-4540-8f76-d17d43e7ff1b",
       "code": "\n# Initial TSP solution using nearest neighbor heuristic\n\ndef solve_tsp(cities, distance_matrix):\n    \"\"\"Solve TSP using nearest neighbor heuristic\"\"\"\n    n = len(cities)\n    tour = [0]  # Start from city 0\n    unvisited = set(range(1, n))\n    \n    current = 0\n    while unvisited:\n        # Find nearest unvisited city\n        nearest = min(unvisited, key=lambda city: distance_matrix[current][city])\n        tour.append(nearest)\n        unvisited.remove(nearest)\n        current = nearest\n    \n    return tour\n\n\ndef calculate_tour_length(tour, distance_matrix):\n    \"\"\"Calculate total tour length\"\"\"\n    total = 0\n    for i in range(len(tour) - 1):\n        total += distance_matrix[tour[i]][tour[i + 1]]\n    # Return to start\n    total += distance_matrix[tour[-1]][tour[0]]\n    return total\n\n\ndef run_experiment(**kwargs):\n    \"\"\"Main experiment function\"\"\"\n    cities = kwargs.get('cities')\n    distance_matrix = kwargs.get('distance_matrix')\n    \n    tour = solve_tsp(cities, distance_matrix)\n    distance = calculate_tour_length(tour, distance_matrix)\n    \n    return {\n        'tour': tour,\n        'distance': distance,\n        'fitness': -distance  # Minimize distance\n    }\n",
       "language": "python",
       "parent_id": null,
@@ -9,7 +9,7 @@
       "top_k_inspiration_ids": [],
       "island_idx": 0,
       "generation": 0,
-      "timestamp": 1759648780.3720207,
+      "timestamp": 1759649049.8734891,
       "code_diff": null,
       "combined_score": 0.0,
       "public_metrics": {},
@@ -24,7 +24,7 @@
       "embedding_cluster_id": null,
       "migration_history": [],
       "metadata": {
-        "compute_time": 10.003059148788452,
+        "compute_time": 10.003012895584106,
         "api_costs": 0.0,
         "embed_cost": 0.0,
         "novelty_cost": 0.0,
@@ -32,7 +32,7 @@
         "patch_name": "initial_program",
         "patch_description": "Initial program from file.",
         "stdout_log": "",
-        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_448a4eee/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
+        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_e791694e/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
         "code_analysis_metrics": {
           "cyclomatic_complexity": 5,
           "average_cyclomatic_complexity": 1.6666666666666667,
@@ -50,15 +50,15 @@
       "in_archive": false
     },
     {
-      "id": "8bb7ca60-8265-4c75-902f-14b85b6b6a76",
+      "id": "de0175e0-dae1-4e0f-93cf-38ad09475960",
       "code": "",
       "language": "python",
-      "parent_id": "99d282d6-6cfa-4e18-8fcf-d074ee3f411f",
+      "parent_id": "20e118e2-b4a7-4540-8f76-d17d43e7ff1b",
       "archive_inspiration_ids": [],
       "top_k_inspiration_ids": [],
       "island_idx": 0,
       "generation": 1,
-      "timestamp": 1759648782.4330308,
+      "timestamp": 1759649051.9337127,
       "code_diff": null,
       "combined_score": 0.0,
       "public_metrics": {},
@@ -73,7 +73,7 @@
       "embedding_cluster_id": null,
       "migration_history": [],
       "metadata": {
-        "compute_time": 2.00126576423645,
+        "compute_time": 2.001255989074707,
         "patch_type": "diff",
         "api_costs": 0,
         "num_applied": 0,
@@ -91,7 +91,7 @@
         "embed_cost": 0.0,
         "novelty_cost": 0.0,
         "stdout_log": "",
-        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_448a4eee/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
+        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_e791694e/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
         "code_analysis_metrics": {
           "cyclomatic_complexity": 0,
           "average_cyclomatic_complexity": 0,
@@ -109,15 +109,15 @@
       "in_archive": false
     },
     {
-      "id": "06d55a20-d98e-44d5-990f-75f6046ac8ff",
+      "id": "86ff60b6-e7c4-4634-8271-57b81fbf6dbf",
       "code": "",
       "language": "python",
-      "parent_id": "99d282d6-6cfa-4e18-8fcf-d074ee3f411f",
+      "parent_id": "20e118e2-b4a7-4540-8f76-d17d43e7ff1b",
       "archive_inspiration_ids": [],
       "top_k_inspiration_ids": [],
       "island_idx": 0,
       "generation": 2,
-      "timestamp": 1759648784.488324,
+      "timestamp": 1759649053.988378,
       "code_diff": null,
       "combined_score": 0.0,
       "public_metrics": {},
@@ -132,7 +132,7 @@
       "embedding_cluster_id": null,
       "migration_history": [],
       "metadata": {
-        "compute_time": 2.0012669563293457,
+        "compute_time": 2.0012564659118652,
         "patch_type": "diff",
         "api_costs": 0,
         "num_applied": 0,
@@ -150,7 +150,7 @@
         "embed_cost": 0.0,
         "novelty_cost": 0.0,
         "stdout_log": "",
-        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_448a4eee/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
+        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_e791694e/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
         "code_analysis_metrics": {
           "cyclomatic_complexity": 0,
           "average_cyclomatic_complexity": 0,
@@ -168,15 +168,15 @@
       "in_archive": false
     },
     {
-      "id": "74c6f397-51ac-4b16-9bf5-692478d2ce8e",
+      "id": "5416c367-e81e-4337-bc8f-2397e333127f",
       "code": "",
       "language": "python",
-      "parent_id": "99d282d6-6cfa-4e18-8fcf-d074ee3f411f",
+      "parent_id": "20e118e2-b4a7-4540-8f76-d17d43e7ff1b",
       "archive_inspiration_ids": [],
       "top_k_inspiration_ids": [],
       "island_idx": 0,
       "generation": 3,
-      "timestamp": 1759648786.5442662,
+      "timestamp": 1759649056.0472038,
       "code_diff": null,
       "combined_score": 0.0,
       "public_metrics": {},
@@ -191,7 +191,7 @@
       "embedding_cluster_id": null,
       "migration_history": [],
       "metadata": {
-        "compute_time": 2.001251459121704,
+        "compute_time": 2.0012404918670654,
         "patch_type": "diff",
         "api_costs": 0,
         "num_applied": 0,
@@ -209,7 +209,7 @@
         "embed_cost": 0.0,
         "novelty_cost": 0.0,
         "stdout_log": "",
-        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_448a4eee/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
+        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_e791694e/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
         "code_analysis_metrics": {
           "cyclomatic_complexity": 0,
           "average_cyclomatic_complexity": 0,
@@ -227,15 +227,15 @@
       "in_archive": false
     },
     {
-      "id": "6925dafb-335d-487d-a252-614eb2e45f16",
+      "id": "d67b8176-e2a2-4c92-8c7e-615d33bf5d24",
       "code": "",
       "language": "python",
-      "parent_id": "99d282d6-6cfa-4e18-8fcf-d074ee3f411f",
+      "parent_id": "20e118e2-b4a7-4540-8f76-d17d43e7ff1b",
       "archive_inspiration_ids": [],
       "top_k_inspiration_ids": [],
       "island_idx": 0,
       "generation": 4,
-      "timestamp": 1759648788.5993667,
+      "timestamp": 1759649058.1017108,
       "code_diff": null,
       "combined_score": 0.0,
       "public_metrics": {},
@@ -250,7 +250,7 @@
       "embedding_cluster_id": null,
       "migration_history": [],
       "metadata": {
-        "compute_time": 2.001250743865967,
+        "compute_time": 2.0012710094451904,
         "patch_type": "diff",
         "api_costs": 0,
         "num_applied": 0,
@@ -268,7 +268,7 @@
         "embed_cost": 0.0,
         "novelty_cost": 0.0,
         "stdout_log": "",
-        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_448a4eee/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
+        "stderr_log": "Traceback (most recent call last):\n  File \"/tmp/evo_e791694e/evaluate.py\", line 7, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
         "code_analysis_metrics": {
           "cyclomatic_complexity": 0,
           "average_cyclomatic_complexity": 0,
