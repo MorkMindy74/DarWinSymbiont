@@ -497,7 +497,7 @@ def main():
     if valid_results:
         distances = [r['distance'] for r in valid_results]
         best_distance = min(distances)
-        avg_distance = np.mean(distances)
+        avg_distance = sum(distances) / len(distances)
         
         metrics = {{
             'combined_score': -best_distance,  # Maximize negative distance
