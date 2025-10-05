@@ -243,6 +243,7 @@ async def monitor_evolution_progress(session_id: str, bridge: ShinkaEvolutionBri
             if current_gen > last_generation:
                 # New generation completed
                 gen_data = bridge.get_generation_data(current_gen)
+                logger.info(f"📊 Generation {current_gen} data: best_fitness={gen_data.get('best_fitness')}, avg_fitness={gen_data.get('avg_fitness')}")
                 
                 await connection_manager.broadcast_to_session(session_id, {
                     "type": "generation_complete",
