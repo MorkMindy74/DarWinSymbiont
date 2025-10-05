@@ -209,10 +209,11 @@ class ShinkaEvolutionBridge:
     
     def get_best_solution(self) -> Optional[Dict[str, Any]]:
         """Get the best solution found so far"""
-        if not self.db_path.exists():
+        actual_db = self._find_actual_db_path()
+        if not actual_db:
             return None
         
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        conn = sqlite3.connect(str(actual_db), check_same_thread=False)
         cursor = conn.execute("""
             SELECT id, generation, island_id, code, metrics
             FROM programs
