@@ -41,7 +41,7 @@ class ShinkaEvolutionBridge:
         return EvolutionConfig(
             num_generations=user_config.get("num_generations", 50),
             max_parallel_jobs=user_config.get("max_parallel_jobs", 2),
-            llm_models=user_config.get("llm_models", ["azure-gpt-4.1-mini"]),
+            llm_models=user_config.get("llm_models", ["emergent-gpt-4o"]),  # Use Emergent Key by default
             init_program_path=str(self.initial_program_path),
             results_dir="./results",  # Use relative path to avoid duplication
             patch_types=user_config.get("patch_types", ["diff"]),
