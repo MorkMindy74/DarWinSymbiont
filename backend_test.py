@@ -490,18 +490,34 @@ class EmergentAPITester:
             return False, f"Evolution monitoring error: {e}"
 
     async def test_verify_generated_files(self) -> tuple[bool, str]:
-        """Test 9: Verify generated files exist and contain expected content"""
-        logger.info("Testing generated files verification...")
+        """Test 9: Verify generated files exist and contain expected content - CRITICAL PATH FIX"""
+        logger.info("Testing generated files verification - CHECKING FOR PATH DUPLICATION FIX...")
         
         if not self.work_dir:
             return False, "No work_dir available for file verification test"
         
         try:
             work_path = Path(self.work_dir)
+            logger.info(f"Work directory path: {work_path}")
             
             # Check if work directory exists
             if not work_path.exists():
                 return False, f"Work directory does not exist: {self.work_dir}"
+            
+            # CRITICAL: Check for nested path duplication
+            session_id_short = self.evolution_session_id[:8] if self.evolution_session_id else "unknown"
+            expected_pattern = f"/tmp/evo_{session_id_short}"
+            
+            if expected_pattern not in str(work_path):
+                logger.warning(f"⚠️ Work directory doesn't match expected pattern: {expected_pattern}")
+            
+            # Check for nested duplication (the bug we're testing for)
+            nested_tmp_dirs = list(work_path.glob("**/tmp/evo_*"))
+            if nested_tmp_dirs:
+                logger.error(f"❌ NESTED PATH DUPLICATION DETECTED: {nested_tmp_dirs}")
+                return False, f"Nested path duplication found: {nested_tmp_dirs}"
+            else:
+                logger.info("✅ No nested path duplication detected")
             
             # Check initial.py
             initial_py = work_path / "initial.py"
@@ -525,16 +541,18 @@ class EmergentAPITester:
             if not evaluate_content.strip():
                 return False, "evaluate.py is empty"
             
-            # Check evolution.db
+            # CRITICAL: Check evolution.db path (the main fix)
             evolution_db = work_path / "evolution.db"
             db_exists = evolution_db.exists()
             
-            logger.info(f"✅ File verification successful")
+            logger.info(f"✅ File verification successful - NO PATH DUPLICATION")
+            logger.info(f"Work directory: {work_path}")
             logger.info(f"initial.py: {len(initial_content)} characters")
             logger.info(f"evaluate.py: {len(evaluate_content)} characters")
             logger.info(f"evolution.db exists: {db_exists}")
+            logger.info(f"evolution.db path: {evolution_db}")
             
-            return True, f"File verification successful: initial.py ({len(initial_content)} chars), evaluate.py ({len(evaluate_content)} chars), db_exists={db_exists}"
+            return True, f"File verification successful: NO nested paths, initial.py ({len(initial_content)} chars), evaluate.py ({len(evaluate_content)} chars), db_exists={db_exists}"
                 
         except Exception as e:
             logger.error(f"❌ File verification failed: {e}")
