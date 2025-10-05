@@ -58,6 +58,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Evolution Flow APIs working correctly. All 6 new endpoints tested successfully: (1) POST /api/evolution/configure/{problem_id} - creates session, generates TSP code, returns session_id and work_dir, (2) GET /api/evolution/status/{session_id} - returns session info with status 'configured', (3) POST /api/evolution/start/{session_id} - starts evolution in background, (4) Status monitoring shows evolution running with proper state transitions, (5) File verification confirms initial.py and evaluate.py created with TSP-specific logic, (6) WebSocket integration ready (endpoint exists, connection manager functional). Complete E2E evolution pipeline operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ WEBSOCKET CONNECTION FIX VERIFIED: Comprehensive WebSocket testing confirms URL construction fix is working perfectly. All 4 critical tests passed: (1) Setup Evolution Session ✅ - Created TSP problem, analysis, and evolution session, (2) WebSocket Connection (Local) ✅ - ws://localhost:8001/api/evolution/ws/{session_id} connects successfully with heartbeat mechanism working (30-second intervals), ping-pong mechanism functional, (3) WebSocket Connection (External) ✅ - wss://emergent-evolve.preview.emergentagent.com/api/evolution/ws/{session_id} connects successfully, confirming VITE_BACKEND_URL fix is working, (4) WebSocket Message Broadcasting ✅ - Real-time message broadcasting working correctly with evolution_start and evolution_complete messages received. WebSocket upgrade requests succeed, no connection refused or upgrade failed errors detected. The frontend WebSocket URL construction fix using VITE_BACKEND_URL instead of window.location.host is confirmed working."
 
   - task: "EMERGENT Platform API - Health Check"
     implemented: true
