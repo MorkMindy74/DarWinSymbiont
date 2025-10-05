@@ -397,7 +397,8 @@ def generate_evaluate_program_code(problem_type: str, params: Dict[str, Any]) ->
 import sys
 import json
 import importlib.util
-import numpy as np
+import random
+import math
 
 
 def load_program(program_path):
@@ -410,19 +411,25 @@ def load_program(program_path):
 
 def generate_test_cities(num_cities={num_cities}):
     \"\"\"Generate random city coordinates\"\"\"
-    np.random.seed(42)
-    cities = np.random.rand(num_cities, 2) * 100
+    random.seed(42)
+    cities = []
+    for i in range(num_cities):
+        x = random.random() * 100
+        y = random.random() * 100
+        cities.append([x, y])
     return cities
 
 
 def calculate_distance_matrix(cities):
     \"\"\"Calculate Euclidean distance matrix\"\"\"
     n = len(cities)
-    dist = np.zeros((n, n))
+    dist = [[0.0 for _ in range(n)] for _ in range(n)]
     for i in range(n):
         for j in range(n):
             if i != j:
-                dist[i][j] = np.linalg.norm(cities[i] - cities[j])
+                dx = cities[i][0] - cities[j][0]
+                dy = cities[i][1] - cities[j][1]
+                dist[i][j] = math.sqrt(dx*dx + dy*dy)
     return dist
 
 
