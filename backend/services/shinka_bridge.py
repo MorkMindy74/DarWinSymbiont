@@ -38,17 +38,18 @@ class ShinkaEvolutionBridge:
         
     def create_evolution_config(self, user_config: Dict[str, Any]) -> EvolutionConfig:
         """Create ShinkaEvolve EvolutionConfig from user config"""
+        # IMPORTANT: ShinkaEvolve changes cwd, so we need absolute paths
         return EvolutionConfig(
             num_generations=user_config.get("num_generations", 50),
             max_parallel_jobs=user_config.get("max_parallel_jobs", 2),
             llm_models=user_config.get("llm_models", ["emergent-gpt-4o"]),  # Use Emergent Key by default
-            init_program_path=str(self.initial_program_path),
-            results_dir="./results",  # Use relative path to avoid duplication
+            init_program_path=str(self.initial_program_path.absolute()),
+            results_dir=str(self.results_dir.absolute()),
             patch_types=user_config.get("patch_types", ["diff"]),
-            llm_cache_enabled=True,
-            llm_cache_path="./llm_cache.db",  # Relative path
-            archive_enabled=True,
-            archive_root="./archive",  # Relative path
+            llm_cache_enabled=False,  # Disable cache to simplify
+            llm_cache_path=None,
+            archive_enabled=False,  # Disable archive to simplify
+            archive_root=None,
         )
     
     def create_database_config(self, user_config: Dict[str, Any]) -> DatabaseConfig:
