@@ -43,6 +43,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: ShinkaEvolve Integration working correctly. Fixed JobConfig initialization issue (changed to LocalJobConfig) and added dummy OPENAI_API_KEY for embedding client. Successfully generates TSP-specific initial.py (1183 chars) and evaluate.py (3672 chars) with proper nearest neighbor heuristic and evaluation logic. Evolution runner initializes correctly and starts background evolution process. Minor SQLite threading warnings observed but don't affect core functionality."
+      - working: true
+        agent: "testing"
+        comment: "✅ DATABASE PATH FIX VERIFIED: Critical database path issue completely resolved! The _find_actual_db_path() method successfully handles ShinkaEvolve's nested path creation (/tmp/evo_XXX/results/tmp/evo_XXX/evolution.db). Fixed database schema compatibility issues (island_idx vs island_id, combined_score vs json_extract). All critical success criteria met: (1) Evolution starts and runs successfully ✅, (2) Database found at nested location ✅, (3) get_latest_generation() returns actual numbers (generation 2) ✅, (4) WebSocket generation_complete messages contain real data ✅, (5) Real-time updates working with generation=1, best_fitness=0.0, diversity=1, programs=1 ✅. Evolution completes all 3 generations as configured. The 'Connected - Waiting' dashboard issue is now resolved - WebSocket messages flow correctly with actual evolution data."
         
   - task: "WebSocket Real-time Updates"
     implemented: true
