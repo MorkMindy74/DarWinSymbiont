@@ -459,6 +459,11 @@ def main():
     program_path = sys.argv[1]
     results_dir = sys.argv[2]
     
+    # DEBUG: Print received arguments
+    print(f"DEBUG: Received program_path: {{program_path}}")
+    print(f"DEBUG: Received results_dir: {{results_dir}}")
+    print(f"DEBUG: All argv: {{sys.argv}}")
+    
     # Load program
     program = load_program(program_path)
     
